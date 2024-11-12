@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Homepage
+{% endblock %}
+
+{% block main %}
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Ver historial de los pedidos del dia</h5>
+        <div class="table-responsive">
+          <table class="table text-nowrap align-middle mb-0">
+            <thead>
+              <tr class="border-2 border-bottom border-primary border-0"> 
+                <th scope="col" >ID-Pedido</th>
+                <th scope="col" >Nombre cliente</th>
+                <th scope="col" class="">Nombre empleado</th>
+                <th scope="col" class="text-center">Tipo de pedido</th>
+                <th scope="col" class="ps-0">Fecha / Hora</th>
+              </tr>
+            </thead>
+            <tbody class="table-group-divider">
+              {% for i in info %}
+                <tr>        
+                  <td>{{ i['id']  }} </td>
+                  <td>{{ i['cliente_nombre'] }} </td>
+                  <td>{{ i['empleado_nombre'] }}</td>
+                  <td>{{ i['tipo_pedido'] }}</td>
+                  <td>{{ i['fecha_hora'] }} </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

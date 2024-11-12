@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Pedidos
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Estilos personalizados */
+    .category-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      overflow-y: auto;
+      max-height: 400px;
+    }
+    .category-item {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .category-item img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .product-table {
+      margin-top: 20px;
+      max-height: calc(100vh - 250px); /* Ajuste dinámico de altura */
+      overflow-y: auto;
+    }
+    .order-table tbody {
+      max-height: 220px; /* Altura para 3 filas aproximadamente */
+      overflow-y: auto;
+      display: block;
+    }
+    .order-table thead, .order-table tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+  </style>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col-lg-2">
+        <h5>Categorías</h5>
+        <div class="category-menu" id="category-menu">
+            <!-- Categorías estáticas -->
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <table class="table table-bordered product-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Precio</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="product-table-body">
+            <!-- Filas dinámicas para productos -->
+          </tbody>
+        </table>
+    </div>
+        <!-- Menú de categorías (Sidebar) -->
+
+    
+    <!-- Tabla de pedido -->
+    <div class="col-lg-6">
+        <table class="table table-bordered order-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Precio</th>
+              <th>Cantidad</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="order-table-body">
+            <!-- Filas dinámicas para productos del pedido -->
+          </tbody>
+        </table>
+    </div>
+    
+
+    
+</div>
+
+<script>
+    const categories = [
+      { id: 1, name: "desayunos", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3TfoRscnBjdgIrOT8CMxlpmKbpRs5G8jJgA&s" },
+      { id: 2, name: "almuerzos", image: "https://www.nicaraguacreativa.com/wp-content/uploads/2023/09/maiz-Nicaragua.jpg" },
+      { id: 3, name: "quesillos", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRknQpUj8_JUK4yttG_JDjimSNlK_EaP4OoQ&s" },
+      { id: 4, name: "bebidas", image: "https://www.cocacolaep.com/assets/Spain/Blog-Rojo-y-en-Botella/2023/MARZO/5-CURIOSIDADES-CONTOUR/Coca-Cola-Contour-1210x1080.jpg" },
+      { id: 5, name: "aperitivos", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" }
+    ];
+
+    const orderItems = [];
+
+    function loadCategories() {
+      const categoryMenu = document.getElementById('category-menu');
+      categoryMenu.innerHTML = '';
+      categories.forEach(category => {
+        const categoryItem = document.createElement('div');
+        categoryItem.className = 'category-item';
+        categoryItem.innerHTML = `
+          <img src="${category.image}" alt="${category.name}">
+          <span>${category.name}</span>
+        `;
+        categoryItem.onclick = () => loadProducts(category.name);
+        categoryMenu.appendChild(categoryItem);
+      });
+    }
+
+    function loadProducts(categoryName) {
+      fetch(`/products/${categoryName}`)
+        .then(response => response.json())
+        .then(products => {
+          const productTableBody = document.getElementById('product-table-body');
+          productTableBody.innerHTML = '';
+          products.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${product.id}</td>
+              <td>${product.nombre}</td>
+              <td>$${Number(product.precio).toFixed(2)}</td>
+              <td><button onclick="addToOrder(${product.id}, '${product.nombre}', ${product.precio})" class="btn btn-primary btn-sm">Añadir</button></td>
+            `;
+            productTableBody.appendChild(row);
+          });
+        });
+    }
+
+    function addToOrder(id, nombre, precio) {
+      const existingItem = orderItems.find(item => item.id === id);
+      if (existingItem) {
+        existingItem.cantidad++;
+      } else {
+        orderItems.push({ id, nombre, precio, cantidad: 1 });
+      }
+      renderOrderTable();
+    }
+
+    function renderOrderTable() {
+      const orderTableBody = document.getElementById('order-table-body');
+      orderTableBody.innerHTML = '';
+      orderItems.forEach(item => {
+        const total = item.precio * item.cantidad;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.nombre}</td>
+          <td>$${item.precio.toFixed(2)}</td>
+          <td><input type="number" value="${item.cantidad}" min="1" onchange="updateQuantity(${item.id}, this.value)" class="form-control"></td>
+          <td>$${total.toFixed(2)}</td>
+        `;
+        orderTableBody.appendChild(row);
+      });
+    }
+
+    function updateQuantity(id, cantidad) {
+      const item = orderItems.find(item => item.id === id);
+      if (item) {
+        item.cantidad = parseInt(cantidad);
+        renderOrderTable();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCategories);
+</script>
+
+{% endblock %}
