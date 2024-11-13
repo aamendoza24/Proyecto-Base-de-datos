@@ -5,7 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Restaurante quesillos lo nuestro!</title>
-  <link rel="shortcut icon" type="image/png" href="../static/images/logos/seodashlogo.png" />
+  
+  <link rel="shortcut icon" type="image/png" href="../static/images/logos/logo.ico" />
   <link rel="stylesheet" href="../static/css/styles.min.css" />
 </head>
 
@@ -20,18 +21,19 @@
           <div class="col-md-8 col-lg-6 col-xxl-3">
             <div class="card mb-0">
               <div class="card-body">
-                <a href="./index.html" class="text-nowrap logo-img text-center d-block py-3 w-100">
-                  <img class="img-fluid" src="../static/images/logos/quesillos.jfif" alt="">
+                <a  class="text-nowrap logo-img text-center d-block py-3 w-100">
+                  <img class="img-fluid" src="../static/images/logos/logo.ico" alt="">
                 </a>
-                <p class="text-center">Los mejores platillos!</p>
+                <p class="text-center fs-6 fw-bold">Los mejores platillos!</p>
+
                 <form action="/login" method="post">
                   <div class="mb-3">
-                    <label for="exampleInputEmail1" class="form-label">Usuario</label>
+                    <label for="exampleInputEmail1" class="form-label fs-4">Usuario</label>
                     <input name="username" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
                   </div>
                   <div class="mb-4">
-                    <label for="exampleInputPassword1" class="form-label">Contraseña</label>
-                    <input name = "password" type="password" class="form-control" id="exampleInputPassword1">
+                    <label for="exampleInputPassword1" class="form-label fs-4">Contraseña</label>
+                    <input name = "password" type="password" class="form-control " id="exampleInputPassword1">
                   </div>
                   <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="form-check">
@@ -42,7 +44,10 @@
                     </div>
                    
                   </div>
-                  <button class="btn btn-primary w-100 py-8 fs-4 mb-4" type="submit">Iniciar Sesion</button>
+                  
+                  <button class="btn btn-danger w-100 py-8 fs-4 mb-4 shadow" type="submit">Iniciar Sesión</button>
+
+
                 </form>
               </div>
             </div>
