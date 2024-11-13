@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\alejandromendoza\Downloads\SEODash-1.0.0\SEODash-1.0.0\env
+set VIRTUAL_ENV=C:\Users\Canaima\Proyecto-Base-de-datos\env
 
 if not defined PROMPT set PROMPT=$P$G
 
