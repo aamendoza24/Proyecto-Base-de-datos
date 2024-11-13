@@ -16,7 +16,7 @@ Session(app)
 # Configura la cadena de conexión para autenticación de Windows
 connection_string = (
     "DRIVER={SQL Server};"
-    "SERVER=X1-ALEMENDOZA;"
+    "SERVER=DESKTOP-TMK9D8F\SQLEXPRESS;"
     "DATABASE=quesillos;"
     "Trusted_Connection=yes;"
 )
@@ -156,10 +156,76 @@ def catalogoproductos():
         print("Error no se pudieron extraer los datos de la base de datos")
     return render_template("catalogoproductos.html", info=table)
 
+
+
+
+#mostrar clientes
+@app.route('/clientes', methods = ['GET', 'POST'])
+@login_required
+def clientes ():
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT * from clientes
+    """)
+    table = cursor.fetchall()
+    
+        
+    return render_template("clientes.html", info=table)
+
+@app.route('/clientes/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_cliente(id):
+    nombre = request.form['nombre']
+    telefono = request.form['telefono']
+    direccion = request.form['direccion']
+    email = request.form['email']
+    
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE clientes
+        SET nombre = ?, telefono = ?, direccion = ?, email = ?
+        WHERE id = ?
+    """, (nombre, telefono, direccion, email, id))
+    connection.commit()
+    cursor.close()
+    
+    flash("Cliente actualizado exitosamente")
+    return redirect(url_for('clientes'))
+
+
+@app.route('/productos/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_producto(id):
+    nombre = request.form['nombre']
+    precio = request.form['precio']
+    
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE productos
+        SET nombre = ?, precio = ?
+        WHERE id = ?
+    """, (nombre, precio, id))
+    connection.commit()
+    cursor.close()
+    
+    flash("Producto actualizado exitosamente")
+    return redirect(url_for('catalogoproductos'))
+
+
+
+    
+
 @app.route('/products', methods=['GET', 'POST'])
 @login_required
 def products():
     return render_template("pedidos.html")
+
+
+@app.route('/mesas', methods=['GET', 'POST'])
+@login_required
+def mesas():
+    return render_template("mesas.html")
+
 
 # Ruta para obtener productos de una categoría específica
 @app.route('/products/<categoryName>')
