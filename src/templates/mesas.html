@@ -38,130 +38,37 @@
 {% endblock %}
 
 {% block main %}
-  <!---Contenedor con las mesas-->
-  <div class=" container-fluid">
+  <!-- Contenedor con las mesas -->
+  <div class="container-fluid">
     <h1 class="text-center">SALA 1</h1>
     <div class="row">
-        <!-- Mesa 1 -->
+        {% set mesas = [
+            {'id': 1, 'nombre': 'MESA 1'},
+            {'id': 2, 'nombre': 'MESA 2'},
+            {'id': 3, 'nombre': 'MESA 3'},
+            {'id': 4, 'nombre': 'MESA 4'},
+            {'id': 5, 'nombre': 'MESA 5'},
+            {'id': 6, 'nombre': 'MESA 6'},
+            {'id': 7, 'nombre': 'MESA 7'},
+            {'id': 8, 'nombre': 'MESA 8'},
+            {'id': 9, 'nombre': 'MESA 9'},
+            {'id': 10, 'nombre': 'MESA 10'},
+            {'id': 11, 'nombre': 'MESA 11'},
+            {'id': 12, 'nombre': 'MESA 12'},
+            {'id': 13, 'nombre': 'MESA 13'},
+            {'id': 'LLEVAR', 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
+            {'id': 'BARRA', 'nombre': 'BARRA', 'imagen': 'barra.webp'}
+        ] %}
+
+        {% for mesa in mesas %}
         <div class="col-lg-3">
             <div class="mesa-card">
-                <h5>MESA 1</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
+                <h5>{{ mesa.nombre }}</h5>
+                <img src="../static/images/logos/{{ mesa.imagen or 'mesa.webp' }}" alt="{{ mesa.nombre }}">
                 <button class="btn btn-primary btn-atender">Atender</button>
             </div>
         </div>
-        <!-- Mesa 2 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 2</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 3 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 3</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 4 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 4</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 5 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 5</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 6 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 6</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 7 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 7</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 8 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 8</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 8 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 9</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 8 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 10</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 8 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 11</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 8 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 12</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa 13 -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>MESA 13</h5>
-                <img src="../static/images/products/mesa.jpg" alt="Mesa">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa delivery -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>LLEVAR</h5>
-                <img src="../static/images/products/delivery.png" alt="delivery">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
-        <!-- Mesa BARRA -->
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>BARRA</h5>
-                <img src="../static/images/products/delivery.png" alt="delivery">
-                <button class="btn btn-primary btn-atender">Atender</button>
-            </div>
-        </div>
+        {% endfor %}
     </div>
-</div>
+  </div>
 {% endblock %}
