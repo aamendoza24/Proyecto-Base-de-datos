@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import pyodbc
 from flask_session import Session #manejo de sesiones
 from functools import wraps
-#import jsonify
 import sqlite3
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -99,7 +99,7 @@ def index():
         
     return render_template("index.html", info=table)
     
-
+#ruta para el renderizado del login
 @app.route('/usuarios', methods=['GET', 'POST'])
 @login_required
 def usuarios():
@@ -117,6 +117,7 @@ def usuarios():
             print("Error no se pudieron extraer los datos de la base de datos")
         return render_template("usuarios.html", info=table)
     
+#ruta para el ingreso de productos
 @app.route('/ingresoproducto', methods=['GET', 'POST'])
 @login_required
 def ingresoproducto():
@@ -143,7 +144,7 @@ def ingresoproducto():
     else:
         return render_template("registroproducto.html")
     
-
+#Ruta en la que podemos ver todo el listado de platillos y bebidas
 @app.route('/catalogoproductos', methods=['GET', 'POST'])
 @login_required
 def catalogoproductos():
@@ -213,19 +214,36 @@ def editar_producto(id):
     return redirect(url_for('catalogoproductos'))
 
 
-
-    
-
+#ruta para realizar los pedidos
 @app.route('/products', methods=['GET', 'POST'])
 @login_required
 def products():
-    return render_template("pedidos.html")
+    mesa_id = request.args.get('mesa_id')
+    fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return render_template('pedidos.html', mesa_id=mesa_id, fecha=fecha)
 
-
+#ruta para mostrar las mesas
 @app.route('/mesas', methods=['GET', 'POST'])
 @login_required
 def mesas():
-    return render_template("mesas.html")
+    mesas = [
+        {'id': 1, 'nombre': 'MESA 1'},
+        {'id': 2, 'nombre': 'MESA 2'},
+        {'id': 3, 'nombre': 'MESA 3'},
+        {'id': 4, 'nombre': 'MESA 4'},
+        {'id': 5, 'nombre': 'MESA 5'},
+        {'id': 6, 'nombre': 'MESA 6'},
+        {'id': 7, 'nombre': 'MESA 7'},
+        {'id': 8, 'nombre': 'MESA 8'},
+        {'id': 9, 'nombre': 'MESA 9'},
+        {'id': 10, 'nombre': 'MESA 10'},
+        {'id': 11, 'nombre': 'MESA 11'},
+        {'id': 12, 'nombre': 'MESA 12'},
+        {'id': 13, 'nombre': 'MESA 13'},
+        {'id': 'LLEVAR', 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
+        {'id': 'BARRA', 'nombre': 'BARRA', 'imagen': 'barra.webp'}
+    ]
+    return render_template("mesas.html", mesas = mesas)
 
 
 # Ruta para obtener productos de una categoría específica
