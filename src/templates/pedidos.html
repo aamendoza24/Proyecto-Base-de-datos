@@ -12,7 +12,7 @@
       flex-direction: column;
       gap: 15px;
       overflow-y: auto;
-      max-height: 400px;
+      max-height: 200px;
     }
     .category-item {
       cursor: pointer;
@@ -32,7 +32,7 @@
       overflow-y: auto;
     }
     .order-table tbody {
-      max-height: 220px; /* Altura para 3 filas aproximadamente */
+      max-height: 160px; /* Altura para 3 filas aproximadamente */
       overflow-y: auto;
       display: block;
     }
@@ -41,18 +41,22 @@
       width: 100%;
       table-layout: fixed;
     }
-  </style>
+    .totals-container {
+      margin-top: 15px;
+    }
+</style>
 {% endblock %}
 
 {% block main %}
 <div class="row">
-    <div class="col-lg-2">
+    <div class="col-lg-3">
         <h5>Categorías</h5>
         <div class="category-menu" id="category-menu">
             <!-- Categorías estáticas -->
         </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col-lg-3">
+        <h3>Productos</h3>
         <table class="table table-bordered product-table">
           <thead>
             <tr>
@@ -67,11 +71,10 @@
           </tbody>
         </table>
     </div>
-        <!-- Menú de categorías (Sidebar) -->
 
-    
     <!-- Tabla de pedido -->
     <div class="col-lg-6">
+        <h3>Pedido</h3>
         <table class="table table-bordered order-table">
           <thead>
             <tr>
@@ -85,19 +88,40 @@
             <!-- Filas dinámicas para productos del pedido -->
           </tbody>
         </table>
-    </div>
-    
 
-    
+        <!-- Totales -->
+        <div class="totals-container">
+          <div class="form-group row">
+            <label class="col-sm-4 col-form-label">Subtotal:</label>
+            <div class="col-sm-8">
+              <input type="text" id="subtotal" class="form-control" readonly>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-4 col-form-label">IVA (15%):</label>
+            <div class="col-sm-8">
+              <input type="text" id="iva" class="form-control" readonly>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label class="col-sm-4 col-form-label">Total:</label>
+            <div class="col-sm-8">
+              <input type="text" id="total" class="form-control" readonly>
+            </div>
+          </div>
+        </div>
+    </div>
 </div>
 
 <script>
     const categories = [
-      { id: 1, name: "desayunos", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3TfoRscnBjdgIrOT8CMxlpmKbpRs5G8jJgA&s" },
-      { id: 2, name: "almuerzos", image: "https://www.nicaraguacreativa.com/wp-content/uploads/2023/09/maiz-Nicaragua.jpg" },
-      { id: 3, name: "quesillos", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRknQpUj8_JUK4yttG_JDjimSNlK_EaP4OoQ&s" },
+      { id: 1, name: "desayuno", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3TfoRscnBjdgIrOT8CMxlpmKbpRs5G8jJgA&s" },
+      { id: 2, name: "asados", image: "https://www.nicaraguacreativa.com/wp-content/uploads/2023/09/maiz-Nicaragua.jpg" },
+      { id: 3, name: "quesillo", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRknQpUj8_JUK4yttG_JDjimSNlK_EaP4OoQ&s" },
       { id: 4, name: "bebidas", image: "https://www.cocacolaep.com/assets/Spain/Blog-Rojo-y-en-Botella/2023/MARZO/5-CURIOSIDADES-CONTOUR/Coca-Cola-Contour-1210x1080.jpg" },
-      { id: 5, name: "aperitivos", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" }
+      { id: 5, name: "antojos tipicos", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" },
+      { id: 5, name: "postres", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" },
+      { id: 5, name: "extras", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" }
     ];
 
     const orderItems = [];
@@ -144,6 +168,7 @@
         orderItems.push({ id, nombre, precio, cantidad: 1 });
       }
       renderOrderTable();
+      calculateTotals();
     }
 
     function renderOrderTable() {
@@ -167,7 +192,21 @@
       if (item) {
         item.cantidad = parseInt(cantidad);
         renderOrderTable();
+        calculateTotals();
       }
+    }
+
+    function calculateTotals() {
+      let subtotal = 0;
+      orderItems.forEach(item => {
+        subtotal += item.precio * item.cantidad;
+      });
+      const iva = subtotal * 0.15;
+      const total = subtotal + iva;
+
+      document.getElementById('subtotal').value = `$${subtotal.toFixed(2)}`;
+      document.getElementById('iva').value = `$${iva.toFixed(2)}`;
+      document.getElementById('total').value = `$${total.toFixed(2)}`;
     }
 
     document.addEventListener('DOMContentLoaded', loadCategories);

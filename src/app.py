@@ -3,6 +3,7 @@ import pyodbc
 from flask_session import Session #manejo de sesiones
 from functools import wraps
 #import jsonify
+import sqlite3
 
 app = Flask(__name__)
 
@@ -13,16 +14,14 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configura la cadena de conexión para autenticación de Windows
-connection_string = (
-    "DRIVER={SQL Server};"
-    "SERVER=DESKTOP-TMK9D8F\SQLEXPRESS;"
-    "DATABASE=quesillos;"
-    "Trusted_Connection=yes;"
-)
+database_path = "quesillos.db"  # Ruta al archivo de la base de datos SQLite
 
+# Conexión con SQLite
+connection = sqlite3.connect(database_path, check_same_thread=False)  # Establece la conexión con la base de datos SQLite
+
+connection.row_factory = sqlite3.Row
 # Conexión con la base de datos
-connection = pyodbc.connect(connection_string)
+#connection = pyodbc.connect(connection_string)
 
 def login_required(f):
     """
@@ -88,13 +87,15 @@ def logout():
 @login_required
 def index():
     cursor = connection.cursor()
-    cursor.execute("""
-        SELECT FORMAT(fecha_hora, 'yyyy-MM-dd HH:mm') AS fecha_hora, pedidos.id, 
+    table = cursor.execute("""
+        SELECT strftime('%Y-%m-%d %H:%M', fecha_hora) AS fecha_hora, pedidos.id, 
                    clientes.nombre AS cliente_nombre, empleados.nombre AS empleado_nombre, tipo_pedido 
                     FROM pedidos JOIN clientes ON clientes.id = pedidos.clientes_id JOIN
                    empleados ON empleados.id = pedidos.empleado_id
     """)
     table = cursor.fetchall()
+
+    print(table)
         
     return render_template("index.html", info=table)
     
