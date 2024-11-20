@@ -66,7 +66,7 @@
                 <div class="mesa-card">
                     <h5 class="atendida">{{ mesa.nombre }}</h5>
                     <img src="../static/images/logos/{{ mesa.imagen or 'mesa.webp' }}" alt="{{ mesa.nombre }}">
-                    <a class="btn btn-primary btn-atender" href="{{ url_for('finalizar') }}">Finalizar</a>
+                    <a class="btn btn-primary btn-atender" href="{{ url_for('finalizar', mesa_id=mesa.id) }}">Finalizar</a>
     
                 </div>
             </div>

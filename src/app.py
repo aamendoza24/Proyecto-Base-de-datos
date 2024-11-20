@@ -281,28 +281,40 @@ def atender_mesa(mesa_id):
             if mesa['id'] == mesa_id:
                 mesa['atendida'] = True
                 break
-
+            
+        cursor.execute('INSERT INTO clientes (nombre, num_mesa) VALUES (?, ?)', ("-", mesa_id))
+        cliente_id = cursor.lastrowid
         # Insertar el pedido principal
         fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute("""
             INSERT INTO pedidos (fecha_hora, tipo_pedido, empleado_id, clientes_id)
             VALUES (?, ?, ?, ?)
-        """, (fecha, 'domicilio', 1, 1))  # Cambia estos valores según corresponda
+        """, (fecha, 'domicilio', 1, cliente_id))  # Cambia estos valores según corresponda
 
         # Obtener el ID del último pedido
         pedido_id = cursor.lastrowid
-
+        total_monto = 0
         # Insertar los productos del pedido
         for item in order_data:
             cursor.execute("""
                 INSERT INTO pedido_productos (pedido_id, producto_id, cantidad)
                 VALUES (?, ?, ?)
             """, (pedido_id, item['id'], item['cantidad']))
+            total_monto += float(item['total'])
 
+        
+        print(total_monto)
+        cursor.execute(''' SELECT codigo FROM facturas ORDER BY codigo DESC LIMIT 1''')
+        codigo = cursor.fetchone()
+        codigo = codigo['codigo'] + 1
+        print(codigo)
+        cursor.execute('''INSERT INTO FACTURAS (codigo, monto, estado) 
+                       VALUES (?, ?, ?)''', (codigo, total_monto, 'pendiente'))
+        
+        
         # Confirmar cambios
         #connection.commit()
 
-        #return jsonify({"message": "Pedido guardado con éxito"}), 200
         return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
 
 
@@ -311,11 +323,10 @@ def atender_mesa(mesa_id):
         connection.rollback()
         return jsonify({"error": "Error interno del servidor"}), 500
     
-    #return 
 
 
 #ruta para la plantilla de finalizar un pedido
-@app.route('/finalizar', methods=['GET', 'POST'])
+@app.route('/finalizar/<int:mesa_id>', methods=['GET', 'POST'])
 @login_required
 def finalizar():
     return render_template("finalizar.html")
