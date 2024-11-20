@@ -178,6 +178,76 @@ def catalogoproductos():
     return render_template("catalogoproductos.html", info=table)
 
 
+#Ruta en la que podemos ver todo el listado de platillos y bebidas
+@app.route('/entradaproducto', methods=['GET', 'POST'])
+@login_required
+def entradaproductos():
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT * FROM productos
+        """)
+        table = cursor.fetchall()
+    except:
+        print("Error no se pudieron extraer los datos de la base de datos")
+    return render_template("entryproducts.html", info=table)
+
+@app.route('/registrar_pedido', methods=['POST'])
+@login_required
+def registrar_pedido():
+    try:
+        # Obtener los datos del formulario
+        cantidad = request.form['cantidad']
+        costo = request.form['costo']
+        fecha = request.form['fecha']
+        producto_id = request.form['producto_id']
+        
+        # Inserción en la tabla pedidos
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO entradas_inventario (fecha_entrada, cantidad_ingresada, costo_unitario, producto_id)
+            VALUES (%s, %s, %s, %s)
+        """, (fecha, cantidad, costo, producto_id))
+        connection.commit()
+        flash('Pedido registrado correctamente.', 'success')
+    except Exception as e:
+        print("Error al registrar el pedido:", e)
+        flash('Hubo un error al registrar el pedido.', 'danger')
+    
+    # Redireccionar a la página de entrada de productos
+    return redirect(url_for('entradaproductos'))
+
+
+
+
+@app.route('/registrar_producto_ajax', methods=['POST'])
+@login_required
+def registrar_producto_ajax():
+    try:
+        # Obtener los datos del frontend
+        data = request.json
+        producto_id = data['producto_id']
+        cantidad = data['cantidad']
+        costo = data['costo']
+        fecha = data['fecha']
+
+        # Verificar los datos recibidos
+        print("Datos recibidos:")
+        print(f"Producto ID: {producto_id}, Cantidad: {cantidad}, Costo: {costo}, Fecha: {fecha}")
+
+        # Inserción en la base de datos
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO entradas_inventario (fecha_entrada, cantidad_ingresada, costo_unitario, producto_id)
+            VALUES (?, ?, ?, ?)
+        """, (fecha, cantidad, costo, producto_id))  # Asegurarse de usar (?,?,?,?)
+        connection.commit()
+
+        # Retornar respuesta de éxito
+        return jsonify({'status': 'success', 'message': 'Producto registrado correctamente.'})
+    except Exception as e:
+        print(f"Error al registrar el producto: {e}")
+        return jsonify({'status': 'error', 'message': 'Hubo un error al registrar el producto.'})
 
 
 #mostrar clientes
