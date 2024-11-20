@@ -15,8 +15,15 @@
         margin-bottom: 20px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
-    .mesa-card h5 {
+    .mesa-card h5.normal{
         background-color: #28a745;
+        color: white;
+        padding: 5px;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+    .mesa-card h5.atendida {
+        background-color: red !important;
         color: white;
         padding: 5px;
         border-radius: 5px;
@@ -45,14 +52,26 @@
         
 
         {% for mesa in mesas %}
-        <div class="col-lg-3">
-            <div class="mesa-card">
-                <h5>{{ mesa.nombre }}</h5>
-                <img src="../static/images/logos/{{ mesa.imagen or 'mesa.webp' }}" alt="{{ mesa.nombre }}">
-                <a class="btn btn-primary btn-atender" href="{{ url_for('products', mesa_id=mesa.id) }}">Atender</a>
-
+            {% if not mesa.atendida %}
+            <div class="col-lg-3">
+                <div class="mesa-card">
+                    <h5 class="normal">{{ mesa.nombre }}</h5>
+                    <img src="../static/images/logos/{{ mesa.imagen or 'mesa.webp' }}" alt="{{ mesa.nombre }}">
+                    <a class="btn btn-primary btn-atender" href="{{ url_for('products', mesa_id=mesa.id) }}">Atender</a>
+    
+                </div>
             </div>
-        </div>
+            {% else %}
+            <div class="col-lg-3">
+                <div class="mesa-card">
+                    <h5 class="atendida">{{ mesa.nombre }}</h5>
+                    <img src="../static/images/logos/{{ mesa.imagen or 'mesa.webp' }}" alt="{{ mesa.nombre }}">
+                    <a class="btn btn-primary btn-atender" href="{{ url_for('finalizar') }}">Finalizar</a>
+    
+                </div>
+            </div>
+            {% endif%}
+
         {% endfor %}
     </div>
   </div>

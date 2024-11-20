@@ -8,52 +8,7 @@
   <link rel="shortcut icon" type="image/png" href="../static/images/logos/logo.jpg" />
   <link rel="stylesheet" href="../static/css/styles.min.css" />
   {% block extra_head %} {% endblock %}
-  <style>
-    /* Estilo para la barra lateral */
-.left-sidebar {
-    background-color: #333333; /* Fondo oscuro */
-    color: #ffffff; /* Texto blanco */
-}
-
-/* Estilo para los enlaces en la barra lateral */
-.left-sidebar .sidebar-link {
-    color: #e0e0e0; /* Texto blanco para los enlaces */
-}
-
-
-/* Estilo para los elementos de la lista */
-.left-sidebar .sidebar-item {
-    border-bottom: 1px solid #555555; /* Línea de separación entre los elementos */
-}
-
-/* Estilo para los iconos en la barra lateral */
-.iconify-icon {
-    color: #ffffff; /* Color blanco para los iconos */
-}
-
-/* Logo en la barra lateral */
-.left-sidebar .brand-logo img {
-    filter: brightness(0) invert(1); /* Para hacer el logo más visible si es claro */
-}
-
-/* Estilo para los títulos de las secciones en la barra lateral */
-.sidebar-nav .nav-small-cap {
-    color: #e0e0e0; /* Títulos en color gris */
-}
-
-/* Cambio de color del texto de los enlaces al pasar el mouse */
-.left-sidebar .sidebar-item .sidebar-link:hover .hide-menu {
-    color: #ffd700; /* Resaltar los nombres de los elementos en amarillo al pasar el mouse */
-}
-/* Logo en la barra lateral */
-.left-sidebar .brand-logo img {
-    /* Eliminar el filtro para no invertir la imagen */
-    /* Si la imagen es oscura, puedes intentar cambiar el filtro de esta manera */
-    filter: none; /* Sin filtro */
-}
-
-
-  </style>
+  
   
 </head>
 
@@ -93,7 +48,7 @@
               <span class="hide-menu">Operaciones</span>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="{{ url_for('mesas') }}" aria-expanded="false">
+              <a class="sidebar-link" href="{{ url_for('mesas1') }}" aria-expanded="false">
                 <span>
                   <iconify-icon icon="solar:layers-minimalistic-bold-duotone" class="fs-6"></iconify-icon>
                 </span>
@@ -109,7 +64,7 @@
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="ruta.html" aria-expanded="false">
+              <a class="sidebar-link" href="{{ url_for('finalizar') }}" aria-expanded="false">
                 <span>
                   <iconify-icon icon="solar:bookmark-square-minimalistic-bold-duotone" class="fs-6"></iconify-icon>
                 </span>
@@ -250,11 +205,6 @@
         <div class="row">
             {% block main %} {% endblock %}
           </div>
-        </div>
-        
-        <div class="py-6 px-6 text-center">
-          <p class="mb-0 fs-4">Design by los Group Trembolone Distributed by <a href="https://pornhub.com/" target="_blank"
-              class="pe-1 text-primary text-decoration-underline">Trembont</a></p>
         </div>
       </div>
     </div>

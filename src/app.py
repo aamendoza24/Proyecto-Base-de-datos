@@ -23,6 +23,25 @@ connection.row_factory = sqlite3.Row
 # Conexión con la base de datos
 #connection = pyodbc.connect(connection_string)
 
+#implementacion temporal para el estado de las mesas
+mesas = [
+    {'id': 1, 'nombre': 'MESA 1', 'atendida': False},
+    {'id': 2, 'nombre': 'MESA 2', 'atendida': False},
+    {'id': 3, 'nombre': 'MESA 3', 'atendida': False},
+    {'id': 4, 'nombre': 'MESA 4', 'atendida': False},
+    {'id': 5, 'nombre': 'MESA 5', 'atendida': False},
+    {'id': 6, 'nombre': 'MESA 6', 'atendida': False},
+    {'id': 7, 'nombre': 'MESA 7', 'atendida': False},
+    {'id': 8, 'nombre': 'MESA 8', 'atendida': False},
+    {'id': 9, 'nombre': 'MESA 9', 'atendida': False},
+    {'id': 10, 'nombre': 'MESA 10', 'atendida': False},
+    {'id': 11, 'nombre': 'MESA 11', 'atendida': False},
+    {'id': 12, 'nombre': 'MESA 12', 'atendida': False},
+    {'id': 13, 'nombre': 'MESA 13', 'atendida': False},
+    {'id': 'LLEVAR', 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
+    {'id': 'BARRA', 'nombre': 'BARRA', 'imagen': 'barra.webp'}
+]
+
 def login_required(f):
     """
     Decorate routes to require login.
@@ -225,24 +244,7 @@ def products():
 #ruta para mostrar las mesas
 @app.route('/mesas', methods=['GET', 'POST'])
 @login_required
-def mesas():
-    mesas = [
-        {'id': 1, 'nombre': 'MESA 1'},
-        {'id': 2, 'nombre': 'MESA 2'},
-        {'id': 3, 'nombre': 'MESA 3'},
-        {'id': 4, 'nombre': 'MESA 4'},
-        {'id': 5, 'nombre': 'MESA 5'},
-        {'id': 6, 'nombre': 'MESA 6'},
-        {'id': 7, 'nombre': 'MESA 7'},
-        {'id': 8, 'nombre': 'MESA 8'},
-        {'id': 9, 'nombre': 'MESA 9'},
-        {'id': 10, 'nombre': 'MESA 10'},
-        {'id': 11, 'nombre': 'MESA 11'},
-        {'id': 12, 'nombre': 'MESA 12'},
-        {'id': 13, 'nombre': 'MESA 13'},
-        {'id': 'LLEVAR', 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
-        {'id': 'BARRA', 'nombre': 'BARRA', 'imagen': 'barra.webp'}
-    ]
+def mesas1():
     return render_template("mesas.html", mesas = mesas)
 
 
@@ -261,6 +263,62 @@ def get_products(categoryName):
     product_list = [{"id": row[0], "nombre": row[1], "precio": row[2]} for row in products]
     print(product_list)
     return jsonify(product_list)
+
+
+@app.route('/atender_mesa/<int:mesa_id>', methods=['POST'])
+@login_required
+def atender_mesa(mesa_id):
+    data = request.get_json()
+    order_data = data.get('orderData')
+
+    if not order_data:
+        return jsonify({"error": "Datos incompletos"}), 400
+
+    cursor = connection.cursor()
+    try:
+        # Cambiar el estado de la mesa
+        for mesa in mesas:
+            if mesa['id'] == mesa_id:
+                mesa['atendida'] = True
+                break
+
+        # Insertar el pedido principal
+        fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute("""
+            INSERT INTO pedidos (fecha_hora, tipo_pedido, empleado_id, clientes_id)
+            VALUES (?, ?, ?, ?)
+        """, (fecha, 'domicilio', 1, 1))  # Cambia estos valores según corresponda
+
+        # Obtener el ID del último pedido
+        pedido_id = cursor.lastrowid
+
+        # Insertar los productos del pedido
+        for item in order_data:
+            cursor.execute("""
+                INSERT INTO pedido_productos (pedido_id, producto_id, cantidad)
+                VALUES (?, ?, ?)
+            """, (pedido_id, item['id'], item['cantidad']))
+
+        # Confirmar cambios
+        #connection.commit()
+
+        #return jsonify({"message": "Pedido guardado con éxito"}), 200
+        return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
+
+
+    except Exception as e:
+        print(f"Error al procesar el pedido: {e}")
+        connection.rollback()
+        return jsonify({"error": "Error interno del servidor"}), 500
+    
+    #return 
+
+
+#ruta para la plantilla de finalizar un pedido
+@app.route('/finalizar', methods=['GET', 'POST'])
+@login_required
+def finalizar():
+    return render_template("finalizar.html")
 
 
 if __name__ == '__main__':

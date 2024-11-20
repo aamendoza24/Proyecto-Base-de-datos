@@ -59,8 +59,6 @@
     flex-direction: column;
     justify-content: center; /* Centrar verticalmente el contenido */
     align-items: center; /* Centrar horizontalmente el contenido */
-    background-color: #f8f9fa; /* Color de fondo opcional */
-    border: 2px solid blue; /* Borde de color azul */
     border-radius: 10px; /* Bordes redondeados opcionales */
   }
 
@@ -89,13 +87,26 @@
 
 </style>
 </head>
-<body>
+<body style="background-color: #f2f2f2;">
   <div class="container-fluid">
-    <div class="row encabezado">
-      <h2>Atendiendo Mesa: {{ mesa_id }}</h2>
-      <p>Fecha: {{ fecha }}</p>
+
+    <div class="row encabezado mx-3 mt-3">
+      <div class="card shadow">
+        <div class="card-body m-3 d-flex align-items-center justify-content-between">
+          <div class="div">
+            <h2 class="mb-0">Atendiendo Mesa: {{ mesa_id }}</h2>
+            <p class="mb-0">Fecha: {{ fecha }}</p>
+          </div>
+
+          <button id="submit-order" type="submit" class="btn btn-primary mt-3">Ordenar</button>
+
+        </div>
+      </div>
+
     </div>
-    <div class="row contenido">
+
+    <div  class="card shadow mx-3">
+      <div class="row contenido mx-3">
         <div class="col-lg-2">
             <h5>Categorías</h5>
             <div class="category-menu" id="category-menu">
@@ -104,71 +115,84 @@
         </div>
         <div class="col-lg-4">
             <h3>Productos</h3>
-            <table class="table table-bordered product-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Precio</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="product-table-body">
-                <!-- Filas dinámicas para productos -->
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="table w-100 text-wrap align-middle mb-0 product-table">
+                <thead>
+                  <tr class="border-2 border-bottom border-primary border-0">
+                    <th style="width: 12.00%;" class="flex-fill">ID</th>
+                    <th style="width: 40.00%;" class="flex-fill">Nombre</th>
+                    <th style="width: 23.00%;" class="flex-fill">Precio</th>
+                    <th style="width: 25.00%;" class="flex-fill">Accion</th>
+                  </tr>
+                </thead>
+                <tbody id="product-table-body">
+                  <!-- Filas dinámicas para productos -->
+                </tbody>
+              </table>
+            </div>
+
         </div>
     
         <!-- Tabla de pedido -->
         <div class="col-lg-6">
             <h3>Pedido</h3>
-            <table class="table table-bordered order-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Precio</th>
-                  <th>Cantidad</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody id="order-table-body">
-                <!-- Filas dinámicas para productos del pedido -->
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="table text-nowrap align-middle mb-0 order-table ">
+                <thead>
+                  <tr class="border-2 border-bottom border-primary border-0">
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="order-table-body">
+                  <!-- Filas dinámicas para productos del pedido -->
+                </tbody>
+              </table>
+            </div>
+
     
             <!-- Totales -->
-            <div class="totals-container">
-              <div class="form-group row">
-                <label class="col-sm-4 col-form-label">Subtotal:</label>
-                <div class="col-sm-8">
-                  <input type="text" id="subtotal" class="form-control" readonly>
+             <div class="card shadow-sm mt-2">
+              <div class="card-body">
+                <div class="totals-container">
+                  <div class="form-group row">
+                    <label class="col-sm-4 col-form-label">Subtotal:</label>
+                    <div class="col-sm-8">
+                      <input type="text" id="subtotal" class="form-control" readonly>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label class="col-sm-4 col-form-label">IVA (15%):</label>
+                    <div class="col-sm-8">
+                      <input type="text" id="iva" class="form-control" readonly>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label class="col-sm-4 col-form-label">Total:</label>
+                    <div class="col-sm-8">
+                      <input type="text" id="total" class="form-control" readonly>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="form-group row">
-                <label class="col-sm-4 col-form-label">IVA (15%):</label>
-                <div class="col-sm-8">
-                  <input type="text" id="iva" class="form-control" readonly>
-                </div>
-              </div>
-              <div class="form-group row">
-                <label class="col-sm-4 col-form-label">Total:</label>
-                <div class="col-sm-8">
-                  <input type="text" id="total" class="form-control" readonly>
-                </div>
-              </div>
-            </div>
+             </div>
+            
         </div>
     </div>
+    </div>
+
     
     <script>
         const categories = [
           { id: 1, name: "desayuno", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3TfoRscnBjdgIrOT8CMxlpmKbpRs5G8jJgA&s" },
-          { id: 2, name: "asados", image: "https://www.nicaraguacreativa.com/wp-content/uploads/2023/09/maiz-Nicaragua.jpg" },
+          { id: 2, name: "asados", image: "https://chefmont.com/wp-content/uploads/2019/09/asados.jpg" },
           { id: 3, name: "quesillo", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRknQpUj8_JUK4yttG_JDjimSNlK_EaP4OoQ&s" },
           { id: 4, name: "bebidas", image: "https://www.cocacolaep.com/assets/Spain/Blog-Rojo-y-en-Botella/2023/MARZO/5-CURIOSIDADES-CONTOUR/Coca-Cola-Contour-1210x1080.jpg" },
           { id: 5, name: "antojos tipicos", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" },
-          { id: 5, name: "postres", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" },
-          { id: 5, name: "extras", image: "https://i0.wp.com/revistamariaorsini.com/wp-content/uploads/2022/07/tostones-9.jpg?fit=700%2C1009&ssl=1" }
+          { id: 5, name: "postres", image: "https://www.elmueble.com/medio/2023/12/14/ideas-de-postres-para-navidad-que-puedes-preparar-con-antelacion-y-congelar_0cf3e42e_231128110103_231214150004_900x900.jpg" },
+          { id: 5, name: "extras", image: "https://static01.nyt.com/images/2024/08/06/multimedia/11EATrex-flour-tortillas-mvfk/11EATrex-flour-tortillas-mvfk-googleFourByThree.jpg" }
         ];
     
         const orderItems = [];
@@ -255,7 +279,8 @@
           document.getElementById('iva').value = `$${iva.toFixed(2)}`;
           document.getElementById('total').value = `$${total.toFixed(2)}`;
         }
-    
+        
+        
         document.addEventListener('DOMContentLoaded', loadCategories);
     </script>
 
@@ -268,5 +293,58 @@
   <script src="../static/js/app.min.js"></script>
   <script src="../static/js/dashboard.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+  <script>
+    document.getElementById('submit-order').addEventListener('click', function() {
+      // Recopila los datos del pedido
+      const orderData = orderItems.map(item => ({
+        id: item.id,
+        nombre: item.nombre,
+        precio: item.precio,
+        cantidad: item.cantidad,
+        total: (item.precio * item.cantidad).toFixed(2)
+      }));
+
+      if (orderData.length === 0) {
+        alert("El pedido está vacío. Agrega productos antes de enviarlo.");
+        return;
+      }
+  
+      const urlParams = new URLSearchParams(window.location.search);
+      const mesaId = urlParams.get('mesa_id'); // Asegúrate de que mesa_id esté en los parámetros de la URL
+  
+      if (!mesaId) {
+        alert('Error: No se pudo obtener el ID de la mesa desde la URL.');
+        return;
+      }
+  
+      // Enviar los datos al servidor
+      fetch(`/atender_mesa/${mesaId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderData }), // Enviar solo los datos necesarios
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(err => { throw new Error(err); });
+        }
+        return response.json();
+        })
+      .then(data => {
+          if (data.redirect) {
+          window.location.href = data.redirect; // Redirige al usuario
+        } else {
+          console.log('Pedido procesado', data);
+    }
+        })
+      .catch(error => {
+        console.error('Error:', error.message); // Muestra el error exacto
+        alert('Ocurrió un error al enviar el pedido: ' + error.message);
+      });
+    });
+  </script>
+  
 </body>
 </html>
