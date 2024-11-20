@@ -35,3 +35,69 @@ function setEditData(id, nombre, precio) {
     .catch(error => console.error("Error en la solicitud de edición:", error));
   }
   
+  document.addEventListener("DOMContentLoaded", () => {
+    const btnIngresarProducto = document.getElementById("btnIngresarProducto");
+  
+    // Evento para el botón "Ingresar el producto!"
+    btnIngresarProducto.addEventListener("click", () => {
+      // Aquí podrías agregar validaciones si son necesarias
+      const cantidad = document.getElementById("editcantidad").value;
+      const costo = document.getElementById("editcosto").value;
+  
+      if (!cantidad || !costo) {
+        alert("Por favor, complete todos los campos.");
+        return;
+      }
+  
+      // Simula el ingreso del producto (puedes enviar datos al servidor con fetch/axios si es necesario)
+      console.log("Producto ingresado:", { cantidad, costo });
+  
+      // Mostrar el modal de confirmación
+      const modalConfirmacion = new bootstrap.Modal(
+        document.getElementById("modalConfirmacion")
+      );
+      modalConfirmacion.show();
+    });
+  });
+  
+  document.getElementById('btnGuardarProducto').addEventListener('click', function() {
+    // Obtener los valores del formulario
+    var cantidad = document.getElementById('editcantidad').value;
+    var costo = document.getElementById('editcosto').value;
+    var fecha = document.getElementById('editfecha').value;
+    var producto_id = document.getElementById('editId').value;  // Producto ID
+
+    // Validar que los campos no estén vacíos
+    if (!cantidad || !costo || !fecha || !producto_id) {
+        alert('Por favor complete todos los campos');
+        return;
+    }
+
+    // Enviar los datos al backend usando fetch (AJAX)
+    fetch('/registrar_producto_ajax', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            producto_id: producto_id,
+            cantidad: cantidad,
+            costo: costo,
+            fecha: fecha
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Mostrar mensaje de éxito
+            $('#modalConfirmacion').modal('show');
+        } else {
+            // Mostrar mensaje de error
+            alert('Error al registrar el producto');
+        }
+    })
+    .catch(error => {
+        console.error('Error al registrar el producto:', error);
+        alert('Hubo un error al registrar el producto');
+    });
+});

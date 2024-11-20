@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Entrada de los productos de Quesillos Lo nuestro.
+{% endblock %}
+
+{% block main %}
+
+
+<div class="col-lg-12">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Ingreso General de los productos de Quesillos lo nuestro</h5>
+      
+      <div class="mb-3 d-flex">
+        <input type="text" id="filterInput2" class="form-control" placeholder="Ingrese el nombre a buscar">
+        <button onclick="filterTable2()" class="btn btn-primary ms-2">Filtrar</button>
+      </div>
+
+      
+      
+
+
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Listado de productos totales</h5>
+        <div class="table-responsive">
+          <table class="table text-nowrap align-middle mb-0" id="productable">
+            <thead>
+              <tr class="border-2 border-bottom border-primary border-0"> 
+                <th scope="col" class="ps-0">Codigo del producto</th>
+                <th scope="col" >Nombre</th>
+
+                <th scope="col" >Opciones</th>
+              </tr>
+            </thead>
+            <tbody class="table-group-divider">
+              {% for i in info %}
+                <tr>
+                  <td>{{ i['id'] }} </td>
+                  <td>{{ i['nombre']  }} </td>
+
+                  
+                  <td>
+                    
+                  <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editModal" onclick="setEditData({{ i['id'] }}, '{{ i['nombre'] }}', '{{ i['precio'] }}')">
+                    <img src="../static/images/logos/search.png" alt="Editar" width="16" height="16">
+                  </button>
+                  </td>
+                  
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edición (Registrar Producto) -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Registrar Producto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="registroProductoForm">
+            <input type="hidden" id="editId" name="producto_id"> <!-- Producto ID -->
+            
+            <div class="mb-3">
+              <label for="editcantidad" class="form-label">Cantidad</label>
+              <input type="number" class="form-control" id="editcantidad" name="cantidad" required>
+            </div>
+  
+            <div class="mb-3">
+              <label for="editcosto" class="form-label">Costo por unidad</label>
+              <input type="number" class="form-control" id="editcosto" name="costo" step="0.01" required>
+            </div>
+  
+            <div class="mb-3">
+              <label for="editfecha" class="form-label">Fecha</label>
+              <input type="date" class="form-control" id="editfecha" name="fecha" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnGuardarProducto">Registrar Producto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  
+  <!-- Modal de confirmación -->
+  <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+          <!-- Icono de check -->
+          <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+          <h5 class="mt-3">¡Pedido ingresado correctamente!</h5>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+        </div>
+      </div>
+    </div>
+  </div>
+
+   <!-- Enlace a los archivos JavaScript -->
+   <script src="{{ url_for('static', filename='js/filter.js') }}"></script>
+
+   <script src="{{ url_for('static', filename='js/modals2.js') }}"></script>
+
+   
+  
+{% endblock %}
