@@ -318,6 +318,12 @@ def mesas1():
     return render_template("mesas.html", mesas = mesas)
 
 
+#ruta para mostrar las mesas
+@app.route('/test', methods=['GET', 'POST'])
+@login_required
+def testi():
+    return render_template("test.html")
+
 # Ruta para obtener productos de una categoría específica
 @app.route('/products/<categoryName>')
 def get_products(categoryName):
