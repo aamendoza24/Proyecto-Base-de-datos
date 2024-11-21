@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-import pyodbc
 from flask_session import Session #manejo de sesiones
 from functools import wraps
 import sqlite3
@@ -9,7 +8,7 @@ app = Flask(__name__)
 
 app.secret_key = 'tu_clave_secreta'  # Asegúrate de establecer una clave secreta
 
-# Configure session to use filesystem (instead of signed cookies)
+# Configure session to use filesystem (instead ofe signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -84,8 +83,8 @@ def login():
                 print("User ID guardado en la sesión:", session.get('user_id'))
 
                 return redirect(url_for('index'))
-        except pyodbc.Error as e:
-            print("Error en la consulta:", e)
+        except:
+            print("Error en la consulta:")
             flash("Error al procesar la solicitud. Intenta nuevamente.")
             return redirect(url_for('login'))
     
@@ -143,22 +142,21 @@ def ingresoproducto():
     if request.method == 'POST':
         nombre = request.form['nombre']
         precio = float(request.form['precio'])
-
+        categoria = request.form.get('categoria')
+        print(categoria)
         #codigo = request.form['codigo']
         #cantidad = request.form['cantidad']
         try:
             cursor = connection.cursor()
             cursor.execute("""
-                INSERT INTO productos (nombre, precio) VALUES (?, ?)
-            """, (nombre, precio))
+                INSERT INTO productos (nombre, precio, categoria) VALUES (?, ?, ?)
+            """, (nombre, precio, categoria))
             flash("Producto Ingresado Correctamente")
-            return redirect('ingresoproducto')
+            connection.commit()
+            return redirect(url_for('catalogoproductos'))
             
         except:
             flash("No se pudo ingresar el producto")
-
-        
-
 
     else:
         return render_template("registroproducto.html")
@@ -346,7 +344,11 @@ def get_products(categoryName):
 def atender_mesa(mesa_id):
     data = request.get_json()
     order_data = data.get('orderData')
+    cliente_nombre = data.get('cliente')
+    print(cliente_nombre)
 
+    if not cliente_nombre:
+        cliente_nombre = '-'
     if not order_data:
         return jsonify({"error": "Datos incompletos"}), 400
 
@@ -358,14 +360,20 @@ def atender_mesa(mesa_id):
                 mesa['atendida'] = True
                 break
             
-        cursor.execute('INSERT INTO clientes (nombre, num_mesa) VALUES (?, ?)', ("-", mesa_id))
+        cursor.execute('INSERT INTO clientes (nombre, num_mesa) VALUES (?, ?)', (cliente_nombre, mesa_id))
         cliente_id = cursor.lastrowid
         # Insertar el pedido principal
         fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute(''' SELECT codigo FROM facturas ORDER BY codigo DESC LIMIT 1''')
+        codigo = cursor.fetchone()
+        codigo = codigo['codigo'] + 1
+        print(codigo)
+        
+        
         cursor.execute("""
-            INSERT INTO pedidos (fecha_hora, tipo_pedido, empleado_id, clientes_id)
-            VALUES (?, ?, ?, ?)
-        """, (fecha, 'domicilio', 1, cliente_id))  # Cambia estos valores según corresponda
+            INSERT INTO pedidos (fecha_hora, tipo_pedido, empleado_id, clientes_id, codigo_factura)
+            VALUES (?, ?, ?, ?, ?)
+        """, (fecha, 'local', 1, cliente_id, codigo))  # Cambia estos valores según corresponda
 
         # Obtener el ID del último pedido
         pedido_id = cursor.lastrowid
@@ -377,17 +385,11 @@ def atender_mesa(mesa_id):
                 VALUES (?, ?, ?)
             """, (pedido_id, item['id'], item['cantidad']))
             total_monto += float(item['total'])
-
         
         print(total_monto)
-        cursor.execute(''' SELECT codigo FROM facturas ORDER BY codigo DESC LIMIT 1''')
-        codigo = cursor.fetchone()
-        codigo = codigo['codigo'] + 1
-        print(codigo)
         cursor.execute('''INSERT INTO FACTURAS (codigo, monto, estado) 
                        VALUES (?, ?, ?)''', (codigo, total_monto, 'pendiente'))
-        
-        
+             
         # Confirmar cambios
         #connection.commit()
 
@@ -404,8 +406,43 @@ def atender_mesa(mesa_id):
 #ruta para la plantilla de finalizar un pedido
 @app.route('/finalizar/<int:mesa_id>', methods=['GET', 'POST'])
 @login_required
-def finalizar():
-    return render_template("finalizar.html")
+def finalizar(mesa_id):
+    cursor = connection.cursor()
+    if request.method == 'POST':
+        cursor.execute('''UPDATE facturas SET estado = 'pagada' 
+                   WHERE codigo = (SELECT codigo_factura FROM pedidos JOIN clientes 
+                       ON clientes.id = pedidos.clientes_id WHERE  facturas.estado='pendiente' AND clientes.num_mesa = ?)''', (mesa_id,))
+        
+        for mesa in mesas:
+            if mesa['id'] == mesa_id:
+                mesa['atendida'] = False
+                break
+        connection.commit()
+        return redirect(url_for('mesas1'))
+    else:
+        try:
+            cursor.execute('''SELECT 
+                productos.id AS producto_id,
+                productos.nombre AS producto_nombre,
+                productos.precio AS producto_precio,
+                pedido_productos.cantidad AS cantidad,
+                (productos.precio * pedido_productos.cantidad) AS total,
+                pedidos.fecha_hora AS fecha, 
+                clientes.num_mesa AS mesa_id, 
+                facturas.monto AS total_monto
+                FROM clientes
+                JOIN pedidos ON clientes.id = pedidos.clientes_id
+                JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
+                JOIN productos ON pedido_productos.producto_id = productos.id
+                JOIN facturas ON pedidos.codigo_factura = facturas.codigo
+                WHERE clientes.num_mesa = ? AND facturas.estado = 'pendiente';''', (mesa_id,))
+            info = cursor.fetchall()
+            #fecha = info[0]['fecha']
+            #print(fecha)
+            connection.commit()
+            return render_template("finalizar.html", info = info)
+        except Exception as e:
+            return f"Error al cargar los datos: {str(e)}", 500
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@
   <!-- Contenedor con las mesas -->
   <div class="container-fluid">
     
-    <div class="card">
+    <div class="card shadow">
         <div class="card-body">
             <div class="row align-items-center">
                 <!-- Columna para el botón -->
@@ -23,38 +23,45 @@
                 </div>
             </div>
             <div class="row mt-3">
-                <h5 class="text-center">Fecha: 18/11/2024 10:44pm</h5>
-                <h5 class="text-center">Mesa 1 </h5>
+                <h5 class="text-center">Fecha: {{ info[0]['fecha'] }}</h5>
+                <h5 class="text-center">Mesa: {{ info[0]['mesa_id'] }} </h5>
             </div>
             <div style="background-color: #baccf0;" class="row mt-3 p-1">
-                <h4 class="text-center">Total: C$ 100</h4>
+                <h4 class="text-center">Total: C$ {{ info[0]['total_monto'] }}</h4>
             </div>
             <div class="row">
                 <div class="table-responsive">
                     <table class="table text-nowrap align-middle mb-0">
                       <thead>
                         <tr class="border-2 border-bottom border-primary border-0"> 
-                          <th scope="col" >ID-Pedido</th>
-                          <th scope="col" >Nombre cliente</th>
-                          <th scope="col" class="">Nombre empleado</th>
-                          <th scope="col" class="text-center">Tipo de pedido</th>
-                          <th scope="col" class="ps-0">Fecha / Hora</th>
+                          <th scope="col" >Productos</th>
+                          <th scope="col" >Precio</th>
+                          <th scope="col" class="">Total</th>
                         </tr>
                       </thead>
                       <tbody class="table-group-divider">
                         {% for i in info %}
                           <tr>        
-                            <td>{{ i['id']  }} </td>
-                            <td>{{ i['cliente_nombre'] }} </td>
-                            <td>{{ i['empleado_nombre'] }}</td>
-                            <td>{{ i['tipo_pedido'] }}</td>
-                            <td>{{ i['fecha_hora'] }} </td>
+                            <td>{{ i['producto_nombre']  }} </td>
+                            <td>{{ i['producto_precio'] }} </td>
+                            <td>{{ i['total'] }}</td>
                           </tr>
                         {% endfor %}
                       </tbody>
                     </table>
                   </div>
             </div>
+
+
+          <div class="row mt-3">
+              <div class="col-12">
+                <form action="{{ url_for('finalizar', mesa_id=info[0]['mesa_id']) }}" method="POST">
+                  <button type="submit" class="btn btn-primary w-100 text-center">
+                    🛒 Finalizar
+                  </button>
+                </form>
+              </div>
+          </div>
         </div>
     </div>
     

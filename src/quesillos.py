@@ -123,7 +123,7 @@ productos_data = [
 
 facturas_data = [
     (50.00, 'pendiente', 1),
-    (70.00, 'pagada', 2),
+    (70.00, 'pendiente', 2),
     # Agregar más datos según sea necesario
 ]
 
@@ -157,10 +157,10 @@ pedido_productos_data = [
 
 
 try:
-    cursor.execute('''DELETE FROM facturas WHERE codigo = 1
+    cursor.execute('''UPDATE facturas SET estado = 'pagada' WHERE codigo IN (1, 2)
                 ''')
 except sqlite3.OperationalError as e:
-    print(f'Error: {e}')
+   print(f'Error: {e}')
 # Confirmar los cambios y cerrar la conexión
 conn.commit()
 conn.close()

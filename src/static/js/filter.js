@@ -30,6 +30,3 @@ function filterTable() {
   }
   
 
-  <script>
-  const datepicker = new tempusDominus.TempusDominus(document.getElementById('datepicker'));
-</script>

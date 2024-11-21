@@ -97,6 +97,10 @@
             <h2 class="mb-0">Atendiendo Mesa: {{ mesa_id }}</h2>
             <p class="mb-0">Fecha: {{ fecha }}</p>
           </div>
+          <div class="nombre-cliente-input mb-3">
+            <label for="input1" class="form-label mx-1">Nombre Cliente</label>
+              <input id= "nombre_cliente" name="nombre_cliente" type="text" class="form-control" id="input1" placeholder="(opcional)">
+          </div>
 
           <button id="submit-order" type="submit" class="btn btn-primary mt-3">Ordenar</button>
 
@@ -164,7 +168,7 @@
                     </div>
                   </div>
                   <div class="form-group row">
-                    <label class="col-sm-4 col-form-label">IVA (15%):</label>
+                    <label class="col-sm-4 col-form-label">PROPINA (10%):</label>
                     <div class="col-sm-8">
                       <input type="text" id="iva" class="form-control" readonly>
                     </div>
@@ -275,9 +279,9 @@
           const iva = subtotal * 0.15;
           const total = subtotal + iva;
     
-          document.getElementById('subtotal').value = `$${subtotal.toFixed(2)}`;
-          document.getElementById('iva').value = `$${iva.toFixed(2)}`;
-          document.getElementById('total').value = `$${total.toFixed(2)}`;
+          document.getElementById('subtotal').value = `C$${subtotal.toFixed(2)}`;
+          document.getElementById('iva').value = `C$${iva.toFixed(2)}`;
+          document.getElementById('total').value = `C$${total.toFixed(2)}`;
         }
         
         
@@ -309,6 +313,9 @@
         alert("El pedido está vacío. Agrega productos antes de enviarlo.");
         return;
       }
+      //obtenemos el nombre del cliente
+      const clienteInput = document.getElementById('nombre_cliente');
+      const cliente = clienteInput ? clienteInput.value.trim() : '';
   
       const urlParams = new URLSearchParams(window.location.search);
       const mesaId = urlParams.get('mesa_id'); // Asegúrate de que mesa_id esté en los parámetros de la URL
@@ -324,7 +331,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ orderData }), // Enviar solo los datos necesarios
+        body: JSON.stringify({ orderData , cliente }), // Enviar solo los datos necesarios
       })
       .then(response => {
         if (!response.ok) {
