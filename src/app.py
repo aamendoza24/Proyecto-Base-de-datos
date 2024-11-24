@@ -89,7 +89,8 @@ def login():
             return redirect(url_for('login'))
     
     return render_template('login.html')
-    
+
+#cierre de sesion
 @app.route("/logout", methods=['POST'])
 def logout():
     """Log user out"""
@@ -282,6 +283,7 @@ def editar_cliente(id):
     return redirect(url_for('clientes'))
 
 
+#solicitudes fetch para actualizar el valor de los productos
 @app.route('/productos/editar/<int:id>', methods=['POST'])
 @login_required
 def editar_producto(id):
@@ -309,14 +311,14 @@ def products():
     fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return render_template('pedidos.html', mesa_id=mesa_id, fecha=fecha)
 
-#ruta para mostrar las mesas
+#ruta para el renderizado de la plantilla de mesas
 @app.route('/mesas', methods=['GET', 'POST'])
 @login_required
 def mesas1():
     return render_template("mesas.html", mesas = mesas)
 
 
-#ruta para mostrar las mesas
+#ruta de prueba para el menu principal
 @app.route('/test', methods=['GET', 'POST'])
 @login_required
 def testi():
@@ -338,7 +340,9 @@ def get_products(categoryName):
     print(product_list)
     return jsonify(product_list)
 
-
+#ruta del boton para atender una mesa en especifico
+#se encarga de actualizar el estado de la mesa y hacer todas las inserciones necesarias
+#en las tablas de pedido, facturas, pedido_productos y clientes
 @app.route('/atender_mesa/<int:mesa_id>', methods=['POST'])
 @login_required
 def atender_mesa(mesa_id):
@@ -409,10 +413,13 @@ def atender_mesa(mesa_id):
 def finalizar(mesa_id):
     cursor = connection.cursor()
     if request.method == 'POST':
-        cursor.execute('''UPDATE facturas SET estado = 'pagada' 
+        print(mesa_id)
+        try:
+            cursor.execute('''UPDATE facturas SET estado = 'pagada' 
                    WHERE codigo = (SELECT codigo_factura FROM pedidos JOIN clientes 
                        ON clientes.id = pedidos.clientes_id WHERE  facturas.estado='pendiente' AND clientes.num_mesa = ?)''', (mesa_id,))
-        
+        except Exception as e:
+            print('No se puedo actualizar el estado de la factura', e)
         for mesa in mesas:
             if mesa['id'] == mesa_id:
                 mesa['atendida'] = False
@@ -437,7 +444,6 @@ def finalizar(mesa_id):
                 JOIN facturas ON pedidos.codigo_factura = facturas.codigo
                 WHERE clientes.num_mesa = ? AND facturas.estado = 'pendiente';''', (mesa_id,))
             info = cursor.fetchall()
-            #fecha = info[0]['fecha']
             #print(fecha)
             connection.commit()
             return render_template("finalizar.html", info = info)
