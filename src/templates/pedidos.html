@@ -141,13 +141,15 @@
         <div class="col-lg-6">
             <h3>Pedido</h3>
             <div class="table-responsive">
-              <table class="table text-nowrap align-middle mb-0 order-table ">
+              <table class="table text-wrap align-middle mb-0 order-table ">
                 <thead>
                   <tr class="border-2 border-bottom border-primary border-0">
                     <th>Nombre</th>
                     <th>Precio</th>
                     <th>Cantidad</th>
                     <th>Total</th>
+                    <th>
+                    </th>
                   </tr>
                 </thead>
                 <tbody id="order-table-body">
@@ -245,6 +247,14 @@
           renderOrderTable();
           calculateTotals();
         }
+        function removeFromOrder(id) {
+            const itemIndex = orderItems.findIndex(item => item.id === id);
+            if (itemIndex !== -1) {
+                orderItems.splice(itemIndex, 1); // Eliminar el producto del array
+                renderOrderTable();             // Renderizar la tabla actualizada
+                calculateTotals();              // Recalcular los totales
+            }
+        }
     
         function renderOrderTable() {
           const orderTableBody = document.getElementById('order-table-body');
@@ -257,6 +267,12 @@
               <td>C$${item.precio.toFixed(2)}</td>
               <td><input type="number" value="${item.cantidad}" min="1" onchange="updateQuantity(${item.id}, this.value)" class="form-control"></td>
               <td>C$${total.toFixed(2)}</td>
+              <td>
+                <button onclick="removeFromOrder(${item.id})" class="btn btn-danger btn-sm">
+                  <img src="../static/images/logos/delete.png" alt="Editar" width="16" height="16">
+
+                </button>
+              </td>
             `;
             orderTableBody.appendChild(row);
           });
