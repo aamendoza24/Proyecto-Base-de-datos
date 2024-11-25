@@ -292,7 +292,7 @@
           orderItems.forEach(item => {
             subtotal += item.precio * item.cantidad;
           });
-          const iva = subtotal * 0.15;
+          const iva = subtotal * 0.10;
           const total = subtotal + iva;
     
           document.getElementById('subtotal').value = `C$${subtotal.toFixed(2)}`;
