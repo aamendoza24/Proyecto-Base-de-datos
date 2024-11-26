@@ -102,5 +102,35 @@ function setDeleteId(id) {
     })
     .catch(error => console.error("Error en la solicitud de edición:", error));
   }
-    
+  function confirmDelete(id) {
+    if (confirm("¿Estás seguro de que quieres eliminar este cliente?")) {
+      // Realizar la solicitud de eliminación al servidor
+      fetch(`/clientes/eliminar/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert("Cliente eliminado con éxito");
+  
+          // Aquí eliminamos la fila de la tabla sin recargar la página
+          const row = document.getElementById(`row-${id}`);
+          if (row) {
+            row.remove();  // Elimina la fila de la tabla
+          }
+        } else {
+          alert("Error al eliminar el cliente");
+        }
+      })
+      .catch(error => {
+        console.error('Error al eliminar el cliente:', error);
+        alert('Hubo un error al intentar eliminar el cliente');
+      });
+    }
+  }
+  
+
   
