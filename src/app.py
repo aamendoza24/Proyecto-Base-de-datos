@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_session import Session #manejo de sesiones
 from functools import wraps
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -450,6 +450,52 @@ def finalizar(mesa_id):
         except Exception as e:
             return f"Error al cargar los datos: {str(e)}", 500
 
+# Ruta para ver las facturas
+@app.route('/facturacion', methods=['GET', 'POST'])
+@login_required
+def facturacion():
+    estado = request.args.get('estado')
+    rango_fecha = request.args.get('rango_fecha')  # Obtener la fecha de inicio
+    cursor = connection.cursor()
+    query = '''
+        SELECT f.codigo, f.monto, f.estado, p.fecha_hora, cl.num_mesa
+        FROM facturas f
+        JOIN pedidos p ON f.codigo = p.id
+        JOIN clientes cl ON p.clientes_id = cl.id
+  
+
+    '''
+
+    params = []
+    filters = []
+
+    if estado:  # Si se selecciona un estado, agregar el filtro
+        query += " WHERE f.estado = ?"
+        params.append(estado)
+  # Filtro por rango de fecha
+    if rango_fecha:
+        hoy = datetime.now()
+        if rango_fecha == "hoy":
+            inicio = hoy.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif rango_fecha == "ultimos_7_dias":
+            inicio = hoy - timedelta(days=7)
+        elif rango_fecha == "ultimo_mes":
+            inicio = hoy - timedelta(days=30)
+        else:
+            inicio = None
+
+        if inicio:
+            filters.append("p.fecha_hora >= ?")
+            params.append(inicio.strftime('%Y-%m-%d %H:%M:%S'))
+
+    # Agregar los filtros a la consulta
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+
+    cursor.execute(query, params)
+    
+    facturas = cursor.fetchall()
+    return render_template('facturacion.html', facturas=facturas,estado_seleccionado=estado, rango_fecha_seleccionado=rango_fecha)
 
 if __name__ == '__main__':
     app.run(debug=True)
