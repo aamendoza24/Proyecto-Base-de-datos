@@ -302,6 +302,27 @@ def editar_producto(id):
     flash("Producto actualizado exitosamente")
     return redirect(url_for('catalogoproductos'))
 
+@app.route('/clientes/eliminar/<int:id>', methods=['DELETE'])
+@login_required
+def eliminar_cliente(id):
+    # Conexión a la base de datos
+    cursor = connection.cursor()
+
+    # Ejecutar la consulta para eliminar el cliente
+    cursor.execute("""
+        DELETE FROM clientes
+        WHERE id = ?
+    """, (id,))
+    connection.commit()
+
+    cursor.close()
+
+    # Mostrar mensaje de éxito
+    flash("Cliente eliminado exitosamente", "success")
+    
+    # Retornar una respuesta en JSON para manejar la eliminación en el frontend
+    return jsonify({"status": "success"})
+
 
 #ruta para realizar los pedidos
 @app.route('/products', methods=['GET', 'POST'])
