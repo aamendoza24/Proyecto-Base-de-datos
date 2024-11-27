@@ -292,7 +292,7 @@
           orderItems.forEach(item => {
             subtotal += item.precio * item.cantidad;
           });
-          const iva = subtotal * 0.15;
+          const iva = subtotal * 0.10;
           const total = subtotal + iva;
     
           document.getElementById('subtotal').value = `C$${subtotal.toFixed(2)}`;
@@ -356,11 +356,19 @@
         return response.json();
         })
       .then(data => {
-          if (data.redirect) {
-          window.location.href = data.redirect; // Redirige al usuario
-        } else {
-          console.log('Pedido procesado', data);
-    }
+        if (data.redirect) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Pedido realizado correctamente',
+          text: 'Tu pedido ha sido procesado con éxito.',
+          confirmButtonText: 'Aceptar'
+        }).then(() => {
+          // Redirige después de cerrar la alerta
+          window.location.href = data.redirect;
+        });
+      } else {
+        console.log('Pedido procesado', data);
+      }
         })
       .catch(error => {
         console.error('Error:', error.message); // Muestra el error exacto
@@ -368,6 +376,7 @@
       });
     });
   </script>
-  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 </html>
