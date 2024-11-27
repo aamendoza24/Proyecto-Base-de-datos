@@ -30,30 +30,31 @@ Usuarios
           </thead>
           <tbody class="table-group-divider">
             {% for i in info %}
-            <tr>
-              <td>{{ i['id'] }}</td>
-              <td>{{ i['nombre'] }}</td>
-              <td>{{ i['telefono'] }}</td>
-              <td>
+            {% if i['nombre']!= '-' %}
+              <tr>
+                <td>{{ i['id'] }}</td>
+                <td>{{ i['nombre'] }}</td>
+                <td>{{ i['telefono'] }}</td>
+                <td>
 
-                <button class="btn btn-secondary" data-bs-toggle="modal"
-                  data-bs-target="#editModal"
-                  onclick="setEditData({{ i['id'] }}, '{{ i['nombre'] }}', '{{ i['telefono'] }}', '{{ i['direccion'] }}', '{{ i['email'] }}')">
-                  <img src="../static/images/logos/editar.png" alt="Editar"
-                    width="16" height="16">
-                </button>
+                  <button class="btn btn-secondary" data-bs-toggle="modal"
+                    data-bs-target="#editModal"
+                    onclick="setEditData({{ i['id'] }}, '{{ i['nombre'] }}', '{{ i['telefono'] }}', '{{ i['direccion'] }}', '{{ i['email'] }}')">
+                    <img src="../static/images/logos/editar.png" alt="Editar"
+                      width="16" height="16">
+                  </button>
 
-                <!-- Botón de eliminar -->
-                <button class="btn btn-danger"
-                  onclick="confirmDelete({{ i['id'] }})">
-                  <img src="../static/images/logos/delete.png" alt="Eliminar"
-                    width="16" height="16">
-                </button>
+                  <!-- Botón de eliminar -->
+                  <button class="btn btn-danger"
+                    onclick="confirmDelete({{ i['id'] }})">
+                    <img src="../static/images/logos/delete.png" alt="Eliminar"
+                      width="16" height="16">
+                  </button>
 
-              </td>
+                </td>
 
-            </tr>
-
+              </tr>
+              {% endif %}
             {% endfor %}
           </tbody>
         </table>
