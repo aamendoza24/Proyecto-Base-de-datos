@@ -37,8 +37,8 @@ mesas = [
     {'id': 11, 'nombre': 'MESA 11', 'atendida': False},
     {'id': 12, 'nombre': 'MESA 12', 'atendida': False},
     {'id': 13, 'nombre': 'MESA 13', 'atendida': False},
-    {'id': 14, 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
-    {'id': 15, 'nombre': 'BARRA', 'imagen': 'barra.webp'}
+    {'id': 'LLEVAR', 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
+    {'id': 'BARRA', 'nombre': 'BARRA', 'imagen': 'barra.webp'}
 ]
 
 def login_required(f):
@@ -416,7 +416,7 @@ def atender_mesa(mesa_id):
                        VALUES (?, ?, ?)''', (codigo, total_monto, 'pendiente'))
              
         # Confirmar cambios
-        connection.commit()
+        #connection.commit()
 
         return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
 
@@ -436,22 +436,9 @@ def finalizar(mesa_id):
     if request.method == 'POST':
         print(mesa_id)
         try:
-            #extraemos el id del pedido para poder actualizar el estado de la factura
-            cursor.execute('''SELECT 
-                pedidos.id AS id
-                FROM clientes
-                JOIN pedidos ON clientes.id = pedidos.clientes_id
-                JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
-                JOIN productos ON pedido_productos.producto_id = productos.id
-                JOIN facturas ON pedidos.codigo_factura = facturas.codigo
-                WHERE clientes.num_mesa = ? AND facturas.estado = 'pendiente';''', (mesa_id,))
-            
-            pedido_id = cursor.fetchone()
-            pedido_id = pedido_id['id']
-
-
             cursor.execute('''UPDATE facturas SET estado = 'pagada' 
-                   WHERE codigo = (SELECT codigo_factura FROM pedidos WHERE pedidos.id = ?)''', (pedido_id,))
+                   WHERE codigo = (SELECT codigo_factura FROM pedidos JOIN clientes 
+                       ON clientes.id = pedidos.clientes_id WHERE  facturas.estado='pendiente' AND clientes.num_mesa = ?)''', (mesa_id,))
         except Exception as e:
             print('No se puedo actualizar el estado de la factura', e)
         for mesa in mesas:
@@ -484,6 +471,68 @@ def finalizar(mesa_id):
             return render_template("finalizar.html", info = info)
         except Exception as e:
             return f"Error al cargar los datos: {str(e)}", 500
+
+# Ruta para ver las facturas
+@app.route('/facturacion', methods=['GET', 'POST'])
+@login_required
+def facturacion():
+    estado = request.args.get('estado')
+    rango_fecha = request.args.get('rango_fecha')  # Obtener la fecha de inicio
+    cursor = connection.cursor()
+    query = '''
+        SELECT f.codigo, f.monto, f.estado, p.fecha_hora, cl.num_mesa
+        FROM facturas f
+        JOIN pedidos p ON f.codigo = p.id
+        JOIN clientes cl ON p.clientes_id = cl.id
+  
+
+    '''
+
+    params = []
+    filters = []
+
+    if estado:  # Si se selecciona un estado, agregar el filtro
+        query += " WHERE f.estado = ?"
+        params.append(estado)
+  # Filtro por rango de fecha
+    if rango_fecha:
+        hoy = datetime.now()
+        if rango_fecha == "hoy":
+            inicio = hoy.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif rango_fecha == "ultimos_7_dias":
+            inicio = hoy - timedelta(days=7)
+        elif rango_fecha == "ultimo_mes":
+            inicio = hoy - timedelta(days=30)
+        else:
+            inicio = None
+
+        if inicio:
+            filters.append("p.fecha_hora >= ?")
+            params.append(inicio.strftime('%Y-%m-%d %H:%M:%S'))
+
+    # Agregar los filtros a la consulta
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+
+    cursor.execute(query, params)
+    
+    facturas = cursor.fetchall()
+    return render_template('facturacion.html', facturas=facturas,estado_seleccionado=estado, rango_fecha_seleccionado=rango_fecha)
+
+@app.route('/pedido/<int:pedido_id>/data', methods=['GET'])
+@login_required
+def get_pedido_data(pedido_id):
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT p.id, p.nombre, pp.cantidad, p.precio
+        FROM pedido_productos pp
+        JOIN productos p ON pp.producto_id = p.id
+        WHERE pp.pedido_id = ?
+    """, (pedido_id,))
+    productos = cursor.fetchall()
+
+    order_items = [dict(row) for row in productos]
+    return jsonify(orderItems=order_items)
 
 
 #ruta para el renderizado de la plantilla para editar un pedido
