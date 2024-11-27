@@ -94,12 +94,12 @@
       <div class="card shadow">
         <div class="card-body m-3 d-flex align-items-center justify-content-between">
           <div class="div">
-            <h2 class="mb-0">Atendiendo Mesa: {{ mesa_id }}</h2>
-            <p class="mb-0">Fecha: {{ fecha }}</p>
+            <h2 class="mb-0">Procesando pedido {{ mesa_nombre }}</h2>
+            <p class="mb-0">Fecha: {{ info[0]['fecha'] }}</p>
           </div>
           <div class="nombre-cliente-input mb-3">
             <label for="input1" class="form-label mx-1">Nombre Cliente</label>
-              <input id= "nombre_cliente" name="nombre_cliente" type="text" class="form-control" id="input1" placeholder="(opcional)">
+              <input id= "nombre_cliente" name="nombre_cliente" type="text" class="form-control" id="input1" placeholder="{{ info[0]['nombre'] }}" disabled>
           </div>
 
           <button id="submit-order" type="submit" class="btn btn-primary mt-3">Ordenar</button>

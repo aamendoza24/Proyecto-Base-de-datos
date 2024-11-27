@@ -674,12 +674,17 @@ def editar_pedido(pedido_id):
     cursor = connection.cursor()
     try:
         # Obtener los datos del pedido
-        
-
+        cursor.execute('''SELECT fecha_hora AS fecha, clientes.num_mesa AS num_mesa,
+                       clientes.nombre AS nombre FROM pedidos 
+                       JOIN clientes ON clientes.id = pedidos.clientes_id 
+                       WHERE pedidos.id = ?''', (pedido_id,))
+        info = cursor.fetchall()
+        num_mesa = info[0]['num_mesa']
+        mesa_nombre = mesas[num_mesa]['nombre']
         # Renderizar la plantilla con los datos del pedido y los productos
         return render_template(
             'editarpedido.html',
-            pedido_id=pedido_id,
+            pedido_id=pedido_id, info=info, mesa_nombre=mesa_nombre
         )
     except Exception as e:
         print(f"Error al cargar el pedido: {e}")
