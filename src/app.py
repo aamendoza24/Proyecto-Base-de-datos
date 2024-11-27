@@ -313,6 +313,7 @@ def eliminar_cliente(id):
         DELETE FROM clientes
         WHERE id = ?
     """, (id,))
+    
     connection.commit()
 
     cursor.close()
@@ -532,6 +533,52 @@ def facturacion():
         estado_seleccionado=estado,
         rango_fecha_seleccionado=rango_fecha
     )
+
+
+#RUTA PARA SACAR LA ENTRADA DE INVENTARIO
+@app.route('/registro', methods=['GET', 'POST'])
+@login_required
+def registro():
+    cursor = connection.cursor()
+
+    # Base de la consulta
+    query = '''
+        SELECT 
+            ei.id AS entrada_id,
+            ei.fecha_entrada,
+            ei.cantidad_ingresada,
+            ei.costo_unitario,
+            p.id AS producto_id,
+            p.nombre AS producto_nombre
+        FROM entradas_inventario ei
+        JOIN productos p ON ei.producto_id = p.id
+    '''
+    
+    # Filtro para rango de fechas (opcional, según el HTML)
+    rango_fecha = request.args.get('rango_fecha', '')
+    condiciones = []
+    params = []
+
+    if rango_fecha == 'hoy':
+        condiciones.append("DATE(ei.fecha_entrada) = DATE('now')")
+    elif rango_fecha == 'ultimos_7_dias':
+        condiciones.append("DATE(ei.fecha_entrada) >= DATE('now', '-7 days')")
+    elif rango_fecha == 'ultimo_mes':
+        condiciones.append("DATE(ei.fecha_entrada) >= DATE('now', '-1 month')")
+
+    if condiciones:
+        query += " WHERE " + " AND ".join(condiciones)
+
+    # Ejecutar la consulta con los filtros
+    cursor.execute(query, params)
+    entradas = cursor.fetchall()
+
+    # Pasar datos al template
+    return render_template("registro.html", registro=entradas)
+
+
+
+
 
 @app.route('/pedido/<int:pedido_id>/data', methods=['GET'])
 @login_required
