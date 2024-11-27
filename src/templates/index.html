@@ -3,38 +3,69 @@
 {% block title %}
   Homepage
 {% endblock %}
+{% block extra_head %}
+<style>
+.large-logo {
+    max-width: 100%; /* El logo ocupará casi toda la pantalla */
+    height: auto; 
+    animation: bounce 2s infinite; /* Animación de rebote */
+    margin: 0 auto; 
+}
 
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-20px); 
+    }
+    60% {
+        transform: translateY(-10px);
+    }
+}
+
+.card {
+    border: none;
+    border-radius: 20px;
+    background-color: #ffffff;
+    padding: 2rem;
+}
+
+.card-title {
+    font-size: 3rem; /* Título más grande */
+    font-weight: bold;
+    color: #FF6600;
+}
+
+.card-text {
+    font-size: 1.5rem; /* Texto más visible */
+    color: #333333;
+}
+
+.container-fluid {
+    background-color: #f8f9fa; /* Fondo claro */
+    padding: 0; 
+}
+
+ </style>
+{% endblock %}
 {% block main %}
   <div class="col-lg-12">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Ver historial de los pedidos del dia</h5>
-        <div class="table-responsive">
-          <table class="table text-nowrap align-middle mb-0">
-            <thead>
-              <tr class="border-2 border-bottom border-primary border-0"> 
-                <th scope="col" >ID-Pedido</th>
-                <th scope="col" >Nombre cliente</th>
-                <th scope="col" class="">Nombre empleado</th>
-                <th scope="col" class="text-center">Tipo de pedido</th>
-                <th scope="col" class="ps-0">Fecha / Hora</th>
-              </tr>
-            </thead>
-            <tbody class="table-group-divider">
-              {% for i in info %}
-                <tr>        
-                  <td>{{ i['id']  }} </td>
-                  <td>{{ i['cliente_nombre'] }} </td>
-                  <td>{{ i['empleado_nombre'] }}</td>
-                  <td>{{ i['tipo_pedido'] }}</td>
-                  <td>{{ i['fecha_hora'] }} </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+  
+        <div class="container-fluid d-flex align-items-center justify-content-center vh-100">
+          <div class="card text-center shadow-lg p-4" style="width: 100%; max-width: 1200px;">
+              <div class="card-body">
+                  <img src="../static/images/logos/logo.jpg" 
+                       alt="Logo Quesillos Lo Nuestro" 
+                       class="img-fluid large-logo mb-4" width="80%">
+                  <h1 class="card-title">¡Bienvenido a Quesillos Lo Nuestro!</h1>
+                  <p class="card-text fs-4">
+                      Disfruta de nuestros deliciosos quesillos y platillos típicos nicaragüenses. ¡Te esperamos!
+                  </p>
+              </div>
+          </div>
       </div>
-    </div>
   </div>
+  
 
 {% endblock %}
