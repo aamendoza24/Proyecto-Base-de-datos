@@ -157,7 +157,7 @@ pedido_productos_data = [
 
 
 try:
-    cursor.execute('''UPDATE facturas SET estado = 'pagada' WHERE codigo = 5
+    cursor.execute('''UPDATE facturas SET estado = 'pagada' WHERE estado = 'pendiente'
                 ''')
 except sqlite3.OperationalError as e:
    print(f'Error: {e}')

@@ -37,8 +37,8 @@ mesas = [
     {'id': 11, 'nombre': 'MESA 11', 'atendida': False},
     {'id': 12, 'nombre': 'MESA 12', 'atendida': False},
     {'id': 13, 'nombre': 'MESA 13', 'atendida': False},
-    {'id': 'LLEVAR', 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
-    {'id': 'BARRA', 'nombre': 'BARRA', 'imagen': 'barra.webp'}
+    {'id': 14, 'nombre': 'PARA LLEVAR', 'imagen': 'delivery.svg'},
+    {'id': 15, 'nombre': 'BARRA', 'imagen': 'barra.webp'}
 ]
 
 def login_required(f):
@@ -327,10 +327,13 @@ def eliminar_cliente(id):
 #ruta para realizar los pedidos
 @app.route('/products', methods=['GET', 'POST'])
 @login_required
-def products():
+def products():    
     mesa_id = request.args.get('mesa_id')
+    print(mesa_id)
+    mesa_nombre = mesas[int(mesa_id) - 1]['nombre']
+    
     fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    return render_template('pedidos.html', mesa_id=mesa_id, fecha=fecha)
+    return render_template('pedidos.html', mesa_id=mesa_id, fecha=fecha, mesa_nombre=mesa_nombre)
 
 #ruta para el renderizado de la plantilla de mesas
 @app.route('/mesas', methods=['GET', 'POST'])
@@ -381,10 +384,16 @@ def atender_mesa(mesa_id):
     try:
         # Cambiar el estado de la mesa
         for mesa in mesas:
+            if mesa_id > 13:
+                break
             if mesa['id'] == mesa_id:
                 mesa['atendida'] = True
                 break
-            
+        
+        if mesa_id == 13:
+            estado_pedido = 'domicilio'
+        else:
+            estado_pedido = 'local'
         cursor.execute('INSERT INTO clientes (nombre, num_mesa) VALUES (?, ?)', (cliente_nombre, mesa_id))
         cliente_id = cursor.lastrowid
         # Insertar el pedido principal
@@ -398,9 +407,9 @@ def atender_mesa(mesa_id):
         cursor.execute("""
             INSERT INTO pedidos (fecha_hora, tipo_pedido, empleado_id, clientes_id, codigo_factura)
             VALUES (?, ?, ?, ?, ?)
-        """, (fecha, 'local', 1, cliente_id, codigo))  # Cambia estos valores según corresponda
+        """, (fecha, estado_pedido, 1, cliente_id, codigo))  
 
-        # Obtener el ID del último pedido
+        # Obtener el ID del último pedido para la insercion del nuevo pedido con el id correspondiente
         pedido_id = cursor.lastrowid
         total_monto = 0
         # Insertar los productos del pedido
@@ -416,7 +425,8 @@ def atender_mesa(mesa_id):
                        VALUES (?, ?, ?)''', (codigo, total_monto, 'pendiente'))
              
         # Confirmar cambios
-        #connection.commit()
+        #
+        connection.commit()
 
         return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
 
@@ -436,9 +446,40 @@ def finalizar(mesa_id):
     if request.method == 'POST':
         print(mesa_id)
         try:
-            cursor.execute('''UPDATE facturas SET estado = 'pagada' 
-                   WHERE codigo = (SELECT codigo_factura FROM pedidos JOIN clientes 
-                       ON clientes.id = pedidos.clientes_id WHERE  facturas.estado='pendiente' AND clientes.num_mesa = ?)''', (mesa_id,))
+            #extraemos el id del pedido para poder actualizar el estado de la factura
+            pedido_id = request.args.get('pedido_id')
+            #esto es para el apartado de finalizar desde la venta de mesas
+            if not pedido_id:
+                cursor.execute('''SELECT 
+                    pedidos.id AS id
+                    FROM clientes
+                    JOIN pedidos ON clientes.id = pedidos.clientes_id
+                    JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
+                    JOIN productos ON pedido_productos.producto_id = productos.id
+                    JOIN facturas ON pedidos.codigo_factura = facturas.codigo
+                    WHERE clientes.num_mesa = ? AND facturas.estado = 'pendiente';''', (mesa_id,))
+            
+                pedido_id = cursor.fetchone()
+                pedido_id = pedido_id['id']
+            #finalizar desde el apartado de historial de pedidos
+            print(f'ID del pedido {pedido_id}')
+
+            incluir_propina = request.form.get('propina')  
+            print(f'Valor del checkbox {incluir_propina}')
+
+            # Calcular la propina, por ejemplo, 10% del total
+            cursor.execute('SELECT monto FROM facturas WHERE codigo = (SELECT codigo_factura FROM pedidos WHERE pedidos.id = ?)', (pedido_id,))
+            factura = cursor.fetchone()
+
+            #primero extraemos el monto que estaba asignado en la factura
+            total_factura = factura[0]
+            propina = total_factura * 0.10 if incluir_propina else 0
+            print(propina)
+            nuevo_total = total_factura + propina
+            #actualizamos el estado y el monto en dependencia de que si quiere agregar propina o no
+            cursor.execute('''UPDATE facturas SET estado = 'pagada', monto = ?
+                WHERE codigo = (SELECT codigo_factura FROM pedidos WHERE pedidos.id = ?)''', (nuevo_total, pedido_id))
+        #manejo de errores 
         except Exception as e:
             print('No se puedo actualizar el estado de la factura', e)
         for mesa in mesas:
@@ -448,29 +489,59 @@ def finalizar(mesa_id):
         connection.commit()
         return redirect(url_for('mesas1'))
     else:
-        try:
-            cursor.execute('''SELECT 
-                productos.id AS producto_id,
-                productos.nombre AS producto_nombre,
-                productos.precio AS producto_precio,
-                pedido_productos.cantidad AS cantidad,
-                (productos.precio * pedido_productos.cantidad) AS total,
-                pedidos.fecha_hora AS fecha, 
-                clientes.num_mesa AS mesa_id, 
-                facturas.monto AS total_monto,
-                pedidos.id AS pedido_id
-                FROM clientes
-                JOIN pedidos ON clientes.id = pedidos.clientes_id
-                JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
-                JOIN productos ON pedido_productos.producto_id = productos.id
-                JOIN facturas ON pedidos.codigo_factura = facturas.codigo
-                WHERE clientes.num_mesa = ? AND facturas.estado = 'pendiente';''', (mesa_id,))
-            info = cursor.fetchall()
-            #print(fecha)
-            connection.commit()
-            return render_template("finalizar.html", info = info)
-        except Exception as e:
-            return f"Error al cargar los datos: {str(e)}", 500
+        pedido_id = request.args.get('pedido_id')
+        print(pedido_id)
+        if not pedido_id:
+            try:
+                cursor.execute('''SELECT 
+                    productos.id AS producto_id,
+                    productos.nombre AS producto_nombre,
+                    productos.precio AS producto_precio,
+                    pedido_productos.cantidad AS cantidad,
+                    (productos.precio * pedido_productos.cantidad) AS total,
+                    pedidos.fecha_hora AS fecha, 
+                    clientes.num_mesa AS mesa_id, 
+                    facturas.monto AS total_monto,
+                    pedidos.id AS pedido_id
+                    FROM clientes
+                    JOIN pedidos ON clientes.id = pedidos.clientes_id
+                    JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
+                    JOIN productos ON pedido_productos.producto_id = productos.id
+                    JOIN facturas ON pedidos.codigo_factura = facturas.codigo
+                    WHERE clientes.num_mesa = ? AND facturas.estado = 'pendiente';''', (mesa_id,))
+                info = cursor.fetchall()
+                
+                connection.commit()
+                return render_template("finalizar.html", info = info)
+            except Exception as e:
+                return f"Error al cargar los datos: {str(e)}", 500
+        else:
+            try:
+                cursor.execute('''SELECT 
+                    productos.id AS producto_id,
+                    productos.nombre AS producto_nombre,
+                    productos.precio AS producto_precio,
+                    pedido_productos.cantidad AS cantidad,
+                    (productos.precio * pedido_productos.cantidad) AS total,
+                    pedidos.fecha_hora AS fecha, 
+                    clientes.num_mesa AS mesa_id, 
+                    facturas.monto AS total_monto,
+                    pedidos.id AS pedido_id
+                    FROM clientes
+                    JOIN pedidos ON clientes.id = pedidos.clientes_id
+                    JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
+                    JOIN productos ON pedido_productos.producto_id = productos.id
+                    JOIN facturas ON pedidos.codigo_factura = facturas.codigo
+                    WHERE pedidos.id = ?;''', (pedido_id,))
+                info = cursor.fetchall()
+                print(info)
+                connection.commit()
+                return render_template("finalizar.html", info = info)
+            except Exception as e:
+                return f"Error al cargar los datos: {str(e)}", 500
+
+
+
 
 @app.route('/facturacion', methods=['GET', 'POST'])
 @login_required
@@ -483,9 +554,9 @@ def facturacion():
 
     # Base de la consulta SQL
     query = '''
-        SELECT f.codigo, f.monto, f.estado, p.fecha_hora, cl.num_mesa
+        SELECT f.codigo, f.monto, f.estado, p.fecha_hora, cl.num_mesa, p.id AS pedido_id
         FROM facturas f
-        JOIN pedidos p ON f.codigo = p.id
+        JOIN pedidos p ON f.codigo = p.codigo_factura
         JOIN clientes cl ON p.clientes_id = cl.id
     '''
     filters = []
@@ -524,7 +595,7 @@ def facturacion():
     # Ejecutar la consulta
     cursor.execute(query, params)
     facturas = cursor.fetchall()
-
+    print(facturas)
     # Renderizar el template
     return render_template(
         'facturacion.html',
