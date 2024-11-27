@@ -37,8 +37,8 @@ mesas = [
     {'id': 11, 'nombre': 'MESA 11', 'atendida': False},
     {'id': 12, 'nombre': 'MESA 12', 'atendida': False},
     {'id': 13, 'nombre': 'MESA 13', 'atendida': False},
-    {'id': 'LLEVAR', 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
-    {'id': 'BARRA', 'nombre': 'BARRA', 'imagen': 'barra.webp'}
+    {'id': 14, 'nombre': 'LLEVAR', 'imagen': 'delivery.svg'},
+    {'id': 15, 'nombre': 'BARRA', 'imagen': 'barra.webp'}
 ]
 
 def login_required(f):
@@ -395,7 +395,7 @@ def atender_mesa(mesa_id):
                        VALUES (?, ?, ?)''', (codigo, total_monto, 'pendiente'))
              
         # Confirmar cambios
-        #connection.commit()
+        connection.commit()
 
         return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
 
@@ -415,9 +415,22 @@ def finalizar(mesa_id):
     if request.method == 'POST':
         print(mesa_id)
         try:
+            #extraemos el id del pedido para poder actualizar el estado de la factura
+            cursor.execute('''SELECT 
+                pedidos.id AS id
+                FROM clientes
+                JOIN pedidos ON clientes.id = pedidos.clientes_id
+                JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
+                JOIN productos ON pedido_productos.producto_id = productos.id
+                JOIN facturas ON pedidos.codigo_factura = facturas.codigo
+                WHERE clientes.num_mesa = ? AND facturas.estado = 'pendiente';''', (mesa_id,))
+            
+            pedido_id = cursor.fetchone()
+            pedido_id = pedido_id['id']
+
+
             cursor.execute('''UPDATE facturas SET estado = 'pagada' 
-                   WHERE codigo = (SELECT codigo_factura FROM pedidos JOIN clientes 
-                       ON clientes.id = pedidos.clientes_id WHERE  facturas.estado='pendiente' AND clientes.num_mesa = ?)''', (mesa_id,))
+                   WHERE codigo = (SELECT codigo_factura FROM pedidos WHERE pedidos.id = ?)''', (pedido_id,))
         except Exception as e:
             print('No se puedo actualizar el estado de la factura', e)
         for mesa in mesas:
@@ -436,7 +449,8 @@ def finalizar(mesa_id):
                 (productos.precio * pedido_productos.cantidad) AS total,
                 pedidos.fecha_hora AS fecha, 
                 clientes.num_mesa AS mesa_id, 
-                facturas.monto AS total_monto
+                facturas.monto AS total_monto,
+                pedidos.id AS pedido_id
                 FROM clientes
                 JOIN pedidos ON clientes.id = pedidos.clientes_id
                 JOIN pedido_productos ON pedidos.id = pedido_productos.pedido_id
@@ -449,7 +463,79 @@ def finalizar(mesa_id):
             return render_template("finalizar.html", info = info)
         except Exception as e:
             return f"Error al cargar los datos: {str(e)}", 500
+        
+@app.route('/pedido/<int:pedido_id>/data', methods=['GET'])
+@login_required
+def get_pedido_data(pedido_id):
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT p.id, p.nombre, pp.cantidad, p.precio
+        FROM pedido_productos pp
+        JOIN productos p ON pp.producto_id = p.id
+        WHERE pp.pedido_id = ?
+    """, (pedido_id,))
+    productos = cursor.fetchall()
 
+    order_items = [dict(row) for row in productos]
+    return jsonify(orderItems=order_items)
+
+#ruta para el renderizado de la plantilla para editar un pedido
+@app.route('/editar_pedido/<int:pedido_id>', methods=['GET'])
+@login_required
+def editar_pedido(pedido_id):
+    cursor = connection.cursor()
+    try:
+        # Obtener los datos del pedido
+        
+
+        # Renderizar la plantilla con los datos del pedido y los productos
+        return render_template(
+            'editarpedido.html',
+            pedido_id=pedido_id,
+        )
+    except Exception as e:
+        print(f"Error al cargar el pedido: {e}")
+        return "Error interno del servidor", 500
+
+@app.route('/editar_pedido/<int:pedido_id>', methods=['POST'])
+@login_required
+def editar_pedidos(pedido_id):
+    data = request.get_json()
+    order_items = data.get('orderData')
+    cliente_nombre = data.get('cliente')
+    
+
+    if not cliente_nombre:
+        cliente_nombre = '-'
+    if not order_items:
+        return jsonify({"error": "Datos incompletos"}), 400
+
+    cursor = connection.cursor()
+    try:            
+        #cursor.execute('INSERT INTO clientes (nombre, num_mesa) VALUES (?, ?)', (cliente_nombre, mesa_id))
+        #cliente_id = cursor.lastrowid
+        # Insertar el pedido principal
+        # Actualizar productos del pedido
+        cursor.execute("DELETE FROM pedido_productos WHERE pedido_id = ?", (pedido_id,))
+        total_monto = 0
+        for item in order_items:
+            cursor.execute("""
+                INSERT INTO pedido_productos (pedido_id, producto_id, cantidad)
+                VALUES (?, ?, ?)
+            """, (pedido_id, item['id'], item['cantidad']))
+            total_monto += item['cantidad'] * item['precio']
+
+        # Actualizar el monto total
+        cursor.execute("UPDATE facturas SET monto = ? WHERE codigo = (SELECT codigo_factura FROM pedidos WHERE id = ?)", (total_monto, pedido_id))
+
+
+        return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
+
+
+    except Exception as e:
+        print(f"Error al procesar el pedido: {e}")
+        connection.rollback()
+        return jsonify({"error": "Error interno del servidor"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
