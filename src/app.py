@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_session import Session #manejo de sesiones
 from functools import wraps
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -302,6 +302,27 @@ def editar_producto(id):
     flash("Producto actualizado exitosamente")
     return redirect(url_for('catalogoproductos'))
 
+@app.route('/clientes/eliminar/<int:id>', methods=['DELETE'])
+@login_required
+def eliminar_cliente(id):
+    # Conexión a la base de datos
+    cursor = connection.cursor()
+
+    # Ejecutar la consulta para eliminar el cliente
+    cursor.execute("""
+        DELETE FROM clientes
+        WHERE id = ?
+    """, (id,))
+    connection.commit()
+
+    cursor.close()
+
+    # Mostrar mensaje de éxito
+    flash("Cliente eliminado exitosamente", "success")
+    
+    # Retornar una respuesta en JSON para manejar la eliminación en el frontend
+    return jsonify({"status": "success"})
+
 
 #ruta para realizar los pedidos
 @app.route('/products', methods=['GET', 'POST'])
@@ -463,79 +484,7 @@ def finalizar(mesa_id):
             return render_template("finalizar.html", info = info)
         except Exception as e:
             return f"Error al cargar los datos: {str(e)}", 500
-        
-@app.route('/pedido/<int:pedido_id>/data', methods=['GET'])
-@login_required
-def get_pedido_data(pedido_id):
-    cursor = connection.cursor()
-    cursor.execute("""
-        SELECT p.id, p.nombre, pp.cantidad, p.precio
-        FROM pedido_productos pp
-        JOIN productos p ON pp.producto_id = p.id
-        WHERE pp.pedido_id = ?
-    """, (pedido_id,))
-    productos = cursor.fetchall()
 
-    order_items = [dict(row) for row in productos]
-    return jsonify(orderItems=order_items)
-
-#ruta para el renderizado de la plantilla para editar un pedido
-@app.route('/editar_pedido/<int:pedido_id>', methods=['GET'])
-@login_required
-def editar_pedido(pedido_id):
-    cursor = connection.cursor()
-    try:
-        # Obtener los datos del pedido
-        
-
-        # Renderizar la plantilla con los datos del pedido y los productos
-        return render_template(
-            'editarpedido.html',
-            pedido_id=pedido_id,
-        )
-    except Exception as e:
-        print(f"Error al cargar el pedido: {e}")
-        return "Error interno del servidor", 500
-
-@app.route('/editar_pedido/<int:pedido_id>', methods=['POST'])
-@login_required
-def editar_pedidos(pedido_id):
-    data = request.get_json()
-    order_items = data.get('orderData')
-    cliente_nombre = data.get('cliente')
-    
-
-    if not cliente_nombre:
-        cliente_nombre = '-'
-    if not order_items:
-        return jsonify({"error": "Datos incompletos"}), 400
-
-    cursor = connection.cursor()
-    try:            
-        #cursor.execute('INSERT INTO clientes (nombre, num_mesa) VALUES (?, ?)', (cliente_nombre, mesa_id))
-        #cliente_id = cursor.lastrowid
-        # Insertar el pedido principal
-        # Actualizar productos del pedido
-        cursor.execute("DELETE FROM pedido_productos WHERE pedido_id = ?", (pedido_id,))
-        total_monto = 0
-        for item in order_items:
-            cursor.execute("""
-                INSERT INTO pedido_productos (pedido_id, producto_id, cantidad)
-                VALUES (?, ?, ?)
-            """, (pedido_id, item['id'], item['cantidad']))
-            total_monto += item['cantidad'] * item['precio']
-
-        # Actualizar el monto total
-        cursor.execute("UPDATE facturas SET monto = ? WHERE codigo = (SELECT codigo_factura FROM pedidos WHERE id = ?)", (total_monto, pedido_id))
-
-
-        return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
-
-
-    except Exception as e:
-        print(f"Error al procesar el pedido: {e}")
-        connection.rollback()
-        return jsonify({"error": "Error interno del servidor"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

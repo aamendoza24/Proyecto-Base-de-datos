@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Facturacion
+{% endblock %}
+
+{% block main %}
+{% block extra_head %}
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #555;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .acciones {
+            text-align: center;
+        }
+
+        .editar {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .editar:hover {
+            text-decoration: underline;
+        }
+
+        .boton-agregar {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .boton-agregar:hover {
+            background-color: #218838;
+        }
+        form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    /* Diseño para pantallas más grandes */
+    @media (min-width: 768px) {
+        form {
+            flex-direction: row;
+            align-items: center;
+            gap: 20px;
+        }
+    }
+
+    /* Estilo para las etiquetas */
+    form label {
+        font-size: 1rem;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    /* Estilo para los selectores */
+    form select {
+        padding: 5px 10px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Botón de filtro */
+    form button[type="submit"] {
+        padding: 8px 15px;
+        font-size: 1rem;
+        color: white;
+        background-color: #007bff; /* Azul Bootstrap */
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    form button[type="submit"]:hover {
+        background-color: #0056b3; /* Azul más oscuro */
+    }
+    </style>
+{% endblock %}
+
+</head>
+
+
+    <div class="container">
+        <h1>Facturación</h1>
+        <form method="GET" action="{{ url_for('facturacion') }}">
+            <label for="estado">Filtrar por estado:</label>
+            <select name="estado" id="estado">
+                <option value="" {% if not estado_seleccionado %}selected{% endif %}>Todos</option>
+                <option value="pendiente" {% if estado_seleccionado == 'pendiente' %}selected{% endif %}>pendiente</option>
+                <option value="pagada" {% if estado_seleccionado == 'pagada' %}selected{% endif %}>pagada</option>
+            </select>
+        
+            <label for="rango_fecha">Rango de fecha:</label>
+            <select name="rango_fecha" id="rango_fecha">
+                <option value="" {% if not rango_fecha_seleccionado %}selected{% endif %}>Todos</option>
+                <option value="hoy" {% if rango_fecha_seleccionado == 'hoy' %}selected{% endif %}>Hoy</option>
+                <option value="ultimos_7_dias" {% if rango_fecha_seleccionado == 'ultimos_7_dias' %}selected{% endif %}>Últimos 7 días</option>
+                <option value="ultimo_mes" {% if rango_fecha_seleccionado == 'ultimo_mes' %}selected{% endif %}>Último mes</option>
+            </select>
+        
+            <button type="button" class="btn btn-primary">Filtrar</button>
+        </form>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Num mesa</th>
+                    <th>Monto</th>
+                      <th>fecha</th> 
+                     <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for factura in facturas %}
+                <tr>
+                    <td>{{ factura['codigo'] }}</td>
+                    <td>{{ factura['num_mesa'] }}</td>
+                    <td>C${{ factura['monto'] }}</td>
+                    <td>{{ factura['fecha_hora'] }}</td>
+                    <td>{{ factura['estado'] }}</td>
+
+                    <td class="acciones"><a href="pedidos.html" class="editar">Editar Pedido</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+
+
+{% endblock %}
