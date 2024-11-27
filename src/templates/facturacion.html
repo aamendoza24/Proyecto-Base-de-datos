@@ -57,7 +57,7 @@
         }
 
         .editar {
-            color: #3498db;
+            color: #fff;
             text-decoration: none;
         }
 
@@ -149,14 +149,14 @@
                 <option value="ultimo_mes" {% if rango_fecha_seleccionado == 'ultimo_mes' %}selected{% endif %}>Último mes</option>
             </select>
         
-            <button type="button" class="btn btn-primary">Filtrar</button>
+            <button type="submit" class="btn btn-primary">Filtrar</button>
         </form>
         
         <table>
             <thead>
                 <tr>
                     <th>Código</th>
-                    <th>Num mesa</th>
+                    <th>Pedido ID</th>
                     <th>Monto</th>
                       <th>fecha</th> 
                      <th>Estado</th>
@@ -167,12 +167,18 @@
                 {% for factura in facturas %}
                 <tr>
                     <td>{{ factura['codigo'] }}</td>
-                    <td>{{ factura['num_mesa'] }}</td>
+                    <td>{{ factura['pedido_id'] }}</td>
                     <td>C${{ factura['monto'] }}</td>
                     <td>{{ factura['fecha_hora'] }}</td>
                     <td>{{ factura['estado'] }}</td>
 
-                    <td class="acciones"><a href="pedidos.html" class="editar">Editar Pedido</a></td>
+                    {% if factura['estado'] == 'pendiente' %}
+                    <td class="acciones">
+                        <a href="{{ url_for('finalizar', mesa_id=factura['num_mesa'], pedido_id=factura['pedido_id'])  }}" class="editar btn btn-danger">Finalizar</a>
+                    </td>
+                    {% else %}
+                    <td class="acciones"><a href="" class="editar btn btn-success">Pagado</a></td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
