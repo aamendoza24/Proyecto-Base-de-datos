@@ -472,31 +472,34 @@ def finalizar(mesa_id):
         except Exception as e:
             return f"Error al cargar los datos: {str(e)}", 500
 
-# Ruta para ver las facturas
 @app.route('/facturacion', methods=['GET', 'POST'])
 @login_required
 def facturacion():
+    # Obtener parámetros desde la URL
     estado = request.args.get('estado')
-    rango_fecha = request.args.get('rango_fecha')  # Obtener la fecha de inicio
+    rango_fecha = request.args.get('rango_fecha')
+
     cursor = connection.cursor()
+
+    # Base de la consulta SQL
     query = '''
         SELECT f.codigo, f.monto, f.estado, p.fecha_hora, cl.num_mesa
         FROM facturas f
         JOIN pedidos p ON f.codigo = p.id
         JOIN clientes cl ON p.clientes_id = cl.id
-  
-
     '''
-
-    params = []
     filters = []
+    params = []
 
-    if estado:  # Si se selecciona un estado, agregar el filtro
-        query += " WHERE f.estado = ?"
+    # Filtrar por estado
+    if estado and estado.lower() != "todos":
+        filters.append("f.estado = ?")
         params.append(estado)
-  # Filtro por rango de fecha
-    if rango_fecha:
+
+    # Filtrar por rango de fechas
+    if rango_fecha and rango_fecha.lower() != "todos":
         hoy = datetime.now()
+
         if rango_fecha == "hoy":
             inicio = hoy.replace(hour=0, minute=0, second=0, microsecond=0)
         elif rango_fecha == "ultimos_7_dias":
@@ -510,14 +513,25 @@ def facturacion():
             filters.append("p.fecha_hora >= ?")
             params.append(inicio.strftime('%Y-%m-%d %H:%M:%S'))
 
-    # Agregar los filtros a la consulta
+    # Aplicar los filtros a la consulta
     if filters:
         query += " WHERE " + " AND ".join(filters)
 
+    # Depuración: Imprimir la consulta y los parámetros
+    print("Consulta generada:", query)
+    print("Parámetros:", params)
+
+    # Ejecutar la consulta
     cursor.execute(query, params)
-    
     facturas = cursor.fetchall()
-    return render_template('facturacion.html', facturas=facturas,estado_seleccionado=estado, rango_fecha_seleccionado=rango_fecha)
+
+    # Renderizar el template
+    return render_template(
+        'facturacion.html',
+        facturas=facturas,
+        estado_seleccionado=estado,
+        rango_fecha_seleccionado=rango_fecha
+    )
 
 @app.route('/pedido/<int:pedido_id>/data', methods=['GET'])
 @login_required
