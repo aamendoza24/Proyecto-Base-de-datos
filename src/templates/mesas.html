@@ -47,7 +47,7 @@
 {% block main %}
   <!-- Contenedor con las mesas -->
   <div class="container-fluid">
-    <h1 class="text-center">SALA 1</h1>
+    <h1 class="text-center">Mesas</h1>
     <div class="row">
         
 
@@ -66,7 +66,7 @@
                 <div class="mesa-card">
                     <h5 class="atendida">{{ mesa.nombre }}</h5>
                     <img src="../static/images/logos/{{ mesa.imagen or 'mesa.webp' }}" alt="{{ mesa.nombre }}">
-                    <a class="btn btn-primary btn-atender" href="{{ url_for('finalizar', mesa_id=mesa.id) }}">Finalizar</a>
+                    <a class="btn btn-primary btn-atender" href="{{ url_for('finalizar', mesa_id=mesa.id) }}">Ver Mesa</a>
     
                 </div>
             </div>
