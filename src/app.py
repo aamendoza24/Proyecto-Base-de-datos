@@ -486,5 +486,63 @@ def finalizar(mesa_id):
             return f"Error al cargar los datos: {str(e)}", 500
 
 
+#ruta para el renderizado de la plantilla para editar un pedido
+@app.route('/editar_pedido/<int:pedido_id>', methods=['GET'])
+@login_required
+def editar_pedido(pedido_id):
+    cursor = connection.cursor()
+    try:
+        # Obtener los datos del pedido
+        
+
+        # Renderizar la plantilla con los datos del pedido y los productos
+        return render_template(
+            'editarpedido.html',
+            pedido_id=pedido_id,
+        )
+    except Exception as e:
+        print(f"Error al cargar el pedido: {e}")
+        return "Error interno del servidor", 500
+
+@app.route('/editar_pedido/<int:pedido_id>', methods=['POST'])
+@login_required
+def editar_pedidos(pedido_id):
+    data = request.get_json()
+    order_items = data.get('orderData')
+    cliente_nombre = data.get('cliente')
+    
+
+    if not cliente_nombre:
+        cliente_nombre = '-'
+    if not order_items:
+        return jsonify({"error": "Datos incompletos"}), 400
+
+    cursor = connection.cursor()
+    try:            
+        #cursor.execute('INSERT INTO clientes (nombre, num_mesa) VALUES (?, ?)', (cliente_nombre, mesa_id))
+        #cliente_id = cursor.lastrowid
+        # Insertar el pedido principal
+        # Actualizar productos del pedido
+        cursor.execute("DELETE FROM pedido_productos WHERE pedido_id = ?", (pedido_id,))
+        total_monto = 0
+        for item in order_items:
+            cursor.execute("""
+                INSERT INTO pedido_productos (pedido_id, producto_id, cantidad)
+                VALUES (?, ?, ?)
+            """, (pedido_id, item['id'], item['cantidad']))
+            total_monto += item['cantidad'] * item['precio']
+
+        # Actualizar el monto total
+        cursor.execute("UPDATE facturas SET monto = ? WHERE codigo = (SELECT codigo_factura FROM pedidos WHERE id = ?)", (total_monto, pedido_id))
+
+
+        return jsonify({"message": "Pedido guardado con éxito", "redirect": url_for('mesas1')}), 200
+
+
+    except Exception as e:
+        print(f"Error al procesar el pedido: {e}")
+        connection.rollback()
+        return jsonify({"error": "Error interno del servidor"}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
